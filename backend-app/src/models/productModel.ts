@@ -1,5 +1,34 @@
 import mongoose from "mongoose";
 
+export interface IProduct extends Document {
+  barcode: string;
+  code: string;
+  name: string;
+  shortDescription?: string;
+  description?: string;
+  brand?: string;
+  category?: string;
+  price?: {
+    amount: number;
+    currency: string;
+  };
+  volume?: {
+    value: number;
+    unit: string;
+  };
+  imageUrl?: string;
+  tags?: string[];
+  attributes?: Map<string, string>;
+  aiDescription?: {
+    content?: string;
+    model?: string;
+    generatedAt?: Date;
+  };
+  stockQty: number;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
 const priceSchema = new mongoose.Schema(
   {
     amount: { type: Number, required: true, min: 0 },

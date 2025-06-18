@@ -60,7 +60,7 @@ const router = Router();
  *       401:
  *         description: Unauthorized
  */
-router.post("/", authMiddleware, productRoutes.createContent);
+router.post("/", authMiddleware, productController.createProduct);
 
 // /**
 //  * @swagger
@@ -91,7 +91,7 @@ router.post("/", authMiddleware, productRoutes.createContent);
 //  *                   content_url:
 //  *                     type: string
 //  */
-// router.get("/", authMiddleware, contentController.getAllContent);
+router.get("/", authMiddleware, productController.getProducts);
 
 // /**
 //  * @swagger
