@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import contentService from "../services/contentService";
-import { IContent } from "../models/contentModel";
+import contentService from "../services/productService";
+import { IContent } from "../models/productModel";
 
 // Create new content
 const createContent = async (req: Request, res: Response): Promise<void> => {

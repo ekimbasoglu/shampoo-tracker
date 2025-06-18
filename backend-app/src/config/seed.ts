@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 
 import User from "../models/userModel";
-import Content from "../models/contentModel";
+import Content from "../models/productModel";
 import Rating from "../models/ratingModel";
 
 dotenv.config();

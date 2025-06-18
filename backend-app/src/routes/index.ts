@@ -1,17 +1,13 @@
 import { Router } from "express";
 import authRoutes from "./authRoutes";
-import contentRoutes from "./contentRoutes";
-import ratingRoutes from "./ratingRoutes";
+import productRoutes from "./productRoutes";
 
 const router = Router();
 
 // Auth routes
 router.use("/auth", authRoutes);
 
-// Content routes
-router.use("/content", contentRoutes);
-
-// Rating routes
-router.use("/rating", ratingRoutes);
+// Products routes
+router.use("/products", productRoutes);
 
 export default router;

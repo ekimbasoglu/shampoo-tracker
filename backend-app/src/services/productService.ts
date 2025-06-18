@@ -1,6 +1,6 @@
 // src/services/contentService.ts
 
-import Content, { IContent } from "../models/contentModel";
+import Content, { IProduct } from "../models/productModel";
 
 const createContent = async (data: Partial<IContent>): Promise<IContent> => {
   const { title, description, category, thumbnail_url, content_url } = data;
