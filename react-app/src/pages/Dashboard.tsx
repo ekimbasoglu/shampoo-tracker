@@ -104,8 +104,8 @@ const ContentDashboard: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-100 p-6">
       <header className="bg-white shadow-md p-4 rounded-lg mb-6 flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-800 font-mono">
-          [dashboard]
+        <h1 className="text-2xl text-gray-800 font-sans">
+          Content Dashboard | Shampoo Tracker
         </h1>
         <div className="flex items-center space-x-4">
           <button
