@@ -1,33 +1,53 @@
 import React, { useState, useEffect } from "react";
-import { FaStar } from "react-icons/fa";
+// import { FaStar } from "react-icons/fa";
 
-interface Content {
+interface Product {
   _id: string;
-  title: string;
-  description: string;
-  category: string;
-  thumbnail_url: string;
-  content_url: string;
-  created_at: string;
-  averageRating: number;
+  barcode: string;
+  code: string;
+  name: string;
+  shortDescription?: string;
+  description?: string;
+  brand?: string;
+  category?: string;
+  price?: {
+    amount: number;
+    currency: string;
+  };
+  volume?: {
+    value: number;
+    unit: string;
+  };
+  imageUrl?: string;
+  tags?: string[];
+  attributes?: Map<string, string>;
+  aiDescription?: {
+    content?: string;
+    model?: string;
+    generatedAt?: Date;
+  };
+  stockQty: number;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const ContentDashboard: React.FC = () => {
-  const [contents, setContents] = useState<Content[]>([]);
-  const [selectedContent, setSelectedContent] = useState<Content | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [selectedContent, setSelectedContent] = useState<Product | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState<
-    "create" | "update" | "delete" | "rate"
+    "create" | "update" | "delete" | "rate" | "import-export"
   >("create");
 
   useEffect(() => {
-    fetchContents();
+    fetchProducts();
   }, []);
 
-  const fetchContents = async () => {
+  const fetchProducts = async () => {
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_APP_BACKEND_URI}/api/content`,
+        `${import.meta.env.VITE_APP_BACKEND_URI}/api/products`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -39,27 +59,27 @@ const ContentDashboard: React.FC = () => {
         handleLogout();
       } else {
         const data = await response.json();
-        setContents(data);
+        setProducts(data);
       }
     } catch (error) {
       console.error("Error fetching contents:", error);
     }
   };
 
-  const renderStars = (rating: number) => {
-    const stars = [];
-    for (let i = 1; i <= 5; i++) {
-      stars.push(
-        <FaStar key={i} color={i <= rating ? "#ffc107" : "#e4e5e9"} />
-      );
-    }
-    return stars;
-  };
+  // const renderStars = (rating: number) => {
+  //   const stars = [];
+  //   for (let i = 1; i <= 5; i++) {
+  //     stars.push(
+  //       <FaStar key={i} color={i <= rating ? "#ffc107" : "#e4e5e9"} />
+  //     );
+  //   }
+  //   return stars;
+  // };
 
-  const handleDelete = async (content: Content) => {
+  const handleDelete = async (product: Product) => {
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_APP_BACKEND_URI}/api/content/${content._id}`,
+        `${import.meta.env.VITE_APP_BACKEND_URI}/api/products/${product._id}`,
         {
           method: "DELETE",
           headers: {
@@ -69,7 +89,7 @@ const ContentDashboard: React.FC = () => {
       );
 
       if (response.ok) {
-        fetchContents();
+        fetchProducts();
         setIsModalOpen(false);
       } else {
         console.error("Failed to delete content.");
@@ -89,17 +109,23 @@ const ContentDashboard: React.FC = () => {
     localStorage.removeItem("token");
     window.location.href = "/";
   };
-  const handleEdit = (content: Content) => {
-    setSelectedContent(content);
-    setModalType("update");
-    setIsModalOpen(true);
-  };
+  // const handleEdit = (product: Product) => {
+  //   setSelectedContent(product);
+  //   setModalType("update");
+  //   setIsModalOpen(true);
+  // };
 
-  const handleRate = (content: Content) => {
-    setSelectedContent(content);
-    setModalType("rate");
+  // const handleRate = (product: Product) => {
+  //   setSelectedContent(product);
+  //   setModalType("rate");
+  //   setIsModalOpen(true);
+  // };
+
+  function handleImportRequest(): void {
+    setSelectedContent(null);
+    setModalType("import-export");
     setIsModalOpen(true);
-  };
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
@@ -112,8 +138,20 @@ const ContentDashboard: React.FC = () => {
             onClick={handleCreate}
             className=" text-gray-800 hover:bg-gray-300  py-2 px-4 rounded-sm"
           >
-            [create new content]
+            Create new product
           </button>
+          <button
+            onClick={handleImportRequest}
+            className=" text-gray-800 hover:bg-gray-300  py-2 px-4 rounded-sm"
+          >
+            Import/Export Products
+          </button>
+          {/* <button
+            onClick={handleCreate}
+            className=" text-gray-800 hover:bg-gray-300  py-2 px-4 rounded-sm"
+          >
+            Settings
+          </button> */}
           <button
             onClick={handleLogout}
             className=" text-gray-800 hover:bg-gray-300  py-2 px-4 rounded-sm"
@@ -123,8 +161,8 @@ const ContentDashboard: React.FC = () => {
         </div>
       </header>
 
-      <main className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        {contents.map((content) => (
+      {/* <main className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        {products.map((product) => (
           <div key={content._id} className="bg-white shadow-md rounded-lg p-4">
             <img
               src={content.thumbnail_url}
@@ -154,15 +192,15 @@ const ContentDashboard: React.FC = () => {
             </div>
           </div>
         ))}
-      </main>
+      </main> */}
 
       {isModalOpen && (
         <Modal
-          content={selectedContent}
+          product={selectedContent}
           modalType={modalType}
           closeModal={() => setIsModalOpen(false)}
           handleDelete={handleDelete}
-          refreshContents={fetchContents}
+          refreshContents={fetchProducts}
         />
       )}
     </div>
@@ -171,19 +209,26 @@ const ContentDashboard: React.FC = () => {
 
 // Modal component to handle Create, Update, Delete, and Rate operations
 const Modal: React.FC<{
-  content: Content | null;
-  modalType: "create" | "update" | "delete" | "rate";
+  product: Product | null;
+  modalType: "create" | "update" | "delete" | "rate" | "import-export";
   closeModal: () => void;
-  handleDelete: (content: Content) => void;
+  handleDelete: (product: Product) => void;
   refreshContents: () => void;
-}> = ({ content, modalType, closeModal, handleDelete, refreshContents }) => {
+}> = ({ product, modalType, closeModal, handleDelete, refreshContents }) => {
   const [formData, setFormData] = useState({
-    title: content?.title || "",
-    description: content?.description || "",
-    category: content?.category || "game",
-    thumbnail_url: content?.thumbnail_url || "",
-    content_url: content?.content_url || "",
-    _id: content?._id || "",
+    ...product,
+    name: product?.name || "",
+    description: product?.description || "",
+    barcode: product?.barcode || "",
+    brand: product?.brand || "",
+    category: product?.category || "",
+    price: product?.price || { amount: 0, currency: "USD" },
+    volume: product?.volume || { value: 0, unit: "ml" },
+    imageUrl: product?.imageUrl || "",
+    tags: product?.tags || [],
+    attributes: product?.attributes || new Map(),
+    stockQty: product?.stockQty || 0,
+    isActive: product?.isActive || true,
   });
 
   const handleSubmit = async () => {
@@ -201,9 +246,9 @@ const Modal: React.FC<{
             body: JSON.stringify(formData),
           }
         );
-      } else if (modalType === "update" && content) {
+      } else if (modalType === "update" && product) {
         response = await fetch(
-          `${import.meta.env.VITE_APP_BACKEND_URI}/api/content/${content._id}`,
+          `${import.meta.env.VITE_APP_BACKEND_URI}/api/products/${product._id}`,
           {
             method: "PUT",
             headers: {
@@ -213,9 +258,9 @@ const Modal: React.FC<{
             body: JSON.stringify(formData),
           }
         );
-      } else if (modalType === "delete" && content) {
+      } else if (modalType === "delete" && product) {
         response = await fetch(
-          `${import.meta.env.VITE_APP_BACKEND_URI}/api/content/${content._id}`,
+          `${import.meta.env.VITE_APP_BACKEND_URI}/api/products/${product._id}`,
           {
             method: "DELETE",
             headers: {
@@ -223,10 +268,10 @@ const Modal: React.FC<{
             },
           }
         );
-      } else if (modalType === "rate" && content) {
+      } else if (modalType === "rate" && product) {
         response = await fetch(
           `${import.meta.env.VITE_APP_BACKEND_URI}/api/rating/${
-            content._id
+            product._id
           }/rate`,
           {
             method: "POST",
