@@ -47,7 +47,7 @@ const Register: React.FC = () => {
             <input
               type="text"
               id="username"
-              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2 border rounded-lg focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
               placeholder="Choose a username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
@@ -60,7 +60,7 @@ const Register: React.FC = () => {
             <input
               type="email"
               id="email"
-              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2 border rounded-lg focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
               placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -73,7 +73,7 @@ const Register: React.FC = () => {
             <input
               type="password"
               id="password"
-              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2 border rounded-lg focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
               placeholder="Choose a password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}

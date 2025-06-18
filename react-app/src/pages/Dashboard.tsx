@@ -110,13 +110,13 @@ const ContentDashboard: React.FC = () => {
         <div className="flex items-center space-x-4">
           <button
             onClick={handleCreate}
-            className=" text-gray-800 hover:bg-gray-300  py-2 px-4 rounded"
+            className=" text-gray-800 hover:bg-gray-300  py-2 px-4 rounded-sm"
           >
             [create new content]
           </button>
           <button
             onClick={handleLogout}
-            className=" text-gray-800 hover:bg-gray-300  py-2 px-4 rounded"
+            className=" text-gray-800 hover:bg-gray-300  py-2 px-4 rounded-sm"
           >
             [logout]
           </button>
@@ -141,13 +141,13 @@ const ContentDashboard: React.FC = () => {
             <div className="flex justify-between">
               <button
                 onClick={() => handleEdit(content)}
-                className="bg-blue-500 hover:bg-blue-700 text-white py-1 px-3 rounded"
+                className="bg-blue-500 hover:bg-blue-700 text-white py-1 px-3 rounded-sm"
               >
                 Edit
               </button>
               <button
                 onClick={() => handleRate(content)}
-                className="bg-green-500 hover:bg-green-700 text-white py-1 px-3 rounded"
+                className="bg-green-500 hover:bg-green-700 text-white py-1 px-3 rounded-sm"
               >
                 Rate
               </button>
@@ -264,7 +264,7 @@ const Modal: React.FC<{
           <form>
             <input
               type="text"
-              className="border p-2 w-full mb-4 rounded"
+              className="border p-2 w-full mb-4 rounded-sm"
               value={formData.title}
               onChange={(e) =>
                 setFormData({ ...formData, title: e.target.value })
@@ -272,7 +272,7 @@ const Modal: React.FC<{
               placeholder="Title"
             />
             <textarea
-              className="border p-2 w-full mb-4 rounded"
+              className="border p-2 w-full mb-4 rounded-sm"
               value={formData.description}
               onChange={(e) =>
                 setFormData({ ...formData, description: e.target.value })
@@ -281,7 +281,7 @@ const Modal: React.FC<{
             />
             <input
               type="text"
-              className="border p-2 w-full mb-4 rounded"
+              className="border p-2 w-full mb-4 rounded-sm"
               value={formData.thumbnail_url}
               onChange={(e) =>
                 setFormData({ ...formData, thumbnail_url: e.target.value })
@@ -290,7 +290,7 @@ const Modal: React.FC<{
             />
             <input
               type="text"
-              className="border p-2 w-full mb-4 rounded"
+              className="border p-2 w-full mb-4 rounded-sm"
               value={formData.content_url}
               onChange={(e) =>
                 setFormData({ ...formData, content_url: e.target.value })
@@ -301,14 +301,14 @@ const Modal: React.FC<{
               <button
                 type="button"
                 onClick={handleSubmit}
-                className="bg-blue-500 hover:bg-blue-700 text-white py-1 px-3 rounded"
+                className="bg-blue-500 hover:bg-blue-700 text-white py-1 px-3 rounded-sm"
               >
                 Save
               </button>
               <button
                 type="button"
                 onClick={closeModal}
-                className="bg-gray-500 hover:bg-gray-700 text-white py-1 px-3 rounded"
+                className="bg-gray-500 hover:bg-gray-700 text-white py-1 px-3 rounded-sm"
               >
                 Cancel
               </button>
@@ -316,7 +316,7 @@ const Modal: React.FC<{
                 <button
                   type="button"
                   onClick={() => handleDelete(content!)}
-                  className="bg-red-500 hover:bg-red-700 text-white py-1 px-3 rounded"
+                  className="bg-red-500 hover:bg-red-700 text-white py-1 px-3 rounded-sm"
                 >
                   Delete
                 </button>
@@ -332,14 +332,14 @@ const Modal: React.FC<{
               <button
                 type="button"
                 onClick={closeModal}
-                className="bg-gray-500 hover:bg-gray-700 text-white py-1 px-3 rounded"
+                className="bg-gray-500 hover:bg-gray-700 text-white py-1 px-3 rounded-sm"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleSubmit}
-                className="bg-red-500 hover:bg-red-700 text-white py-1 px-3 rounded"
+                className="bg-red-500 hover:bg-red-700 text-white py-1 px-3 rounded-sm"
               >
                 Delete
               </button>
@@ -351,7 +351,7 @@ const Modal: React.FC<{
           <div>
             <label className="block mb-2">Rating:</label>
             <select
-              className="border p-2 w-full mb-4 rounded"
+              className="border p-2 w-full mb-4 rounded-sm"
               value={formData.category}
               onChange={(e) =>
                 setFormData({ ...formData, category: e.target.value })
@@ -367,14 +367,14 @@ const Modal: React.FC<{
               <button
                 type="button"
                 onClick={closeModal}
-                className="bg-gray-500 hover:bg-gray-700 text-white py-1 px-3 rounded"
+                className="bg-gray-500 hover:bg-gray-700 text-white py-1 px-3 rounded-sm"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleSubmit}
-                className="bg-green-500 hover:bg-green-700 text-white py-1 px-3 rounded"
+                className="bg-green-500 hover:bg-green-700 text-white py-1 px-3 rounded-sm"
               >
                 Submit
               </button>
