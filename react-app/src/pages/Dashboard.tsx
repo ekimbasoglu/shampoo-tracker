@@ -156,7 +156,7 @@ const ContentDashboard: React.FC = () => {
             onClick={handleLogout}
             className=" text-gray-800 hover:bg-gray-300  py-2 px-4 rounded-sm"
           >
-            [logout]
+            Logout
           </button>
         </div>
       </header>

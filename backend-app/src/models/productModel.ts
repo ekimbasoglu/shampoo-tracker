@@ -8,22 +8,12 @@ export interface IProduct extends Document {
   description?: string;
   brand?: string;
   category?: string;
-  price?: {
-    amount: number;
-    currency: string;
-  };
-  volume?: {
-    value: number;
-    unit: string;
-  };
+  price?: string; // e.g. "19.99 EUR"
+  volume: string; // e.g. "500 mL"
   imageUrl?: string;
   tags?: string[];
   attributes?: Map<string, string>;
-  aiDescription?: {
-    content?: string;
-    model?: string;
-    generatedAt?: Date;
-  };
+  aiDescription?: string;
   stockQty: number;
   isActive: boolean;
   createdAt: Date;
@@ -35,23 +25,6 @@ const priceSchema = new mongoose.Schema(
     currency: { type: String, default: "EUR", maxlength: 3 },
   },
   { _id: false } // embedded sub-doc, no separate _id
-);
-
-const volumeSchema = new mongoose.Schema(
-  {
-    value: { type: Number, required: true, min: 0 },
-    unit: { type: String, enum: ["mL", "L"], default: "mL" },
-  },
-  { _id: false }
-);
-
-const aiDescriptionSchema = new mongoose.Schema(
-  {
-    content: String, // full paragraph
-    model: String, // e.g. 'gpt-4o'
-    generatedAt: Date,
-  },
-  { _id: false }
 );
 
 const productSchema = new mongoose.Schema(
@@ -68,14 +41,14 @@ const productSchema = new mongoose.Schema(
     category: { type: String, index: true }, // e.g. 'Shampoo'
 
     /* MERCH DATA */
-    price: priceSchema,
-    volume: volumeSchema,
+    price: { type: String },
+    volume: { type: String },
     imageUrl: { type: String },
 
     /* OPTIONAL EXTRAS */
     tags: [String], // 'anti-dandruff', 'vegan', …
     attributes: { type: Map, of: String }, // flexible key-value pairs
-    aiDescription: aiDescriptionSchema, // can be empty for now
+    aiDescription: { type: String, required: false },
 
     /* HOUSE-KEEPING */
     stockQty: { type: Number, default: 0 }, // if you track inventory
@@ -83,6 +56,17 @@ const productSchema = new mongoose.Schema(
   },
   { timestamps: true } // adds createdAt & updatedAt
 );
+
+productSchema.virtual("handle").get(function () {
+  return this.name
+    ?.toLowerCase()
+    .replace(/\s+/g, "-") // replace spaces with hyphens
+    .replace(/[^a-z0-9\-]/g, ""); // remove non-alphanumeric except hyphen
+});
+
+// Optional: ensure virtuals are included in JSON outputs (like toObject or toJSON)
+productSchema.set("toObject", { virtuals: true });
+productSchema.set("toJSON", { virtuals: true });
 
 /* Full-text index for quick search */
 productSchema.index({

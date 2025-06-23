@@ -6,7 +6,7 @@ const options = {
   definition: {
     openapi: "3.0.0",
     info: {
-      title: "Backend Developer Task",
+      title: "Shampoo Tracker",
       version: "1.0.0",
       description: "",
     },

@@ -1,84 +1,80 @@
-// src/services/contentService.ts
+import Product, { IProduct } from "../models/productModel";
 
-import Content, { IProduct } from "../models/productModel";
-
-const createContent = async (data: Partial<IContent>): Promise<IContent> => {
-  const { title, description, category, thumbnail_url, content_url } = data;
-
-  // Validate category
-  const validCategories: Array<"game" | "video" | "artwork" | "music"> = [
-    "game",
-    "video",
-    "artwork",
-    "music",
-  ];
-  if (
-    !validCategories.includes(
-      category as "game" | "video" | "artwork" | "music"
-    )
-  ) {
-    throw new Error(
-      `Invalid category. Must be one of: ${validCategories.join(", ")}`
-    );
-  }
-
-  // Create content with category casted to the appropriate type
-  const content = new Content({
-    title,
+const createProduct = async (data: Partial<IProduct>): Promise<IProduct> => {
+  const {
+    barcode,
+    code,
+    name,
+    shortDescription,
     description,
-    category: category as "game" | "video" | "artwork" | "music", // Explicitly cast the category
-    thumbnail_url,
-    content_url,
+    brand,
+    category,
+    price,
+    volume,
+    imageUrl,
+    tags,
+    attributes,
+    aiDescription,
+    stockQty,
+    isActive,
+  } = data;
+
+  const product = new Product({
+    barcode,
+    code,
+    name,
+    shortDescription,
+    description,
+    brand,
+    category,
+    price,
+    volume,
+    imageUrl,
+    tags: tags || [],
+    attributes: attributes || {},
+    aiDescription: aiDescription || "",
+    stockQty: stockQty || 0,
+    isActive: isActive !== undefined ? isActive : true,
   });
 
-  return await content.save();
+  const savedProduct = await product.save();
+  return savedProduct.toObject() as IProduct;
 };
 
-const getAllContent = async (): Promise<IContent[]> => {
-  const contents = await Content.aggregate([
-    {
-      $lookup: {
-        from: "ratings",
-        localField: "_id",
-        foreignField: "content",
-        as: "ratings",
-      },
-    },
-    {
-      $addFields: {
-        averageRating: { $avg: "$ratings.rating" },
-      },
-    },
-    {
-      $project: {
-        ratings: 0,
-      },
-    },
-  ]);
-
-  return contents;
+const getProductByBarcodeOrCode = async (
+  barcode: string,
+  code: string
+): Promise<IProduct | null> => {
+  return await Product.findOne({
+    $or: [{ barcode }, { code }],
+  });
 };
 
-const getContentById = async (id: string): Promise<IContent | null> => {
-  return await Content.findById(id);
+const getAllProducts = async (): Promise<IProduct[]> => {
+  return await Product.find();
 };
 
-const updateContentById = async (
+const getProductById = async (id: string): Promise<IProduct | null> => {
+  return await Product.findById(id);
+};
+
+const updateProductById = async (
   id: string,
-  data: Partial<IContent>
-): Promise<IContent | null> => {
-  return await Content.findByIdAndUpdate(id, data, { new: true });
+  data: Partial<IProduct>
+): Promise<IProduct | null> => {
+  return await Product.findByIdAndUpdate(id, data, { new: true });
 };
 
-const deleteContentById = async (id: string): Promise<boolean> => {
-  const result = await Content.findByIdAndDelete(id);
+const deleteProductById = async (id: string): Promise<boolean> => {
+  const result = await Product.findByIdAndDelete(id);
   return result !== null;
 };
 
 export default {
-  createContent,
-  getAllContent,
-  getContentById,
-  updateContentById,
-  deleteContentById,
+  createProduct,
+  getProductByBarcodeOrCode,
+  getAllProducts,
+  getProductById,
+  updateProductById,
+  deleteProductById,
 };
