@@ -7,136 +7,227 @@ const router = Router();
 /**
  * @swagger
  * tags:
- *   name: Content
- *   description: Content management
+ *   name: product
+ *   description: product management
  */
 
 /**
  * @swagger
- * /api/content:
+ * /api/product:
  *   post:
  *     summary: Create a new product item
- *     tags: [Content]
+ *     tags: [product]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
  *       required: true
- *       content:
+ *       product:
  *         application/json:
  *           schema:
  *             type: object
  *             properties:
- *               title:
+ *               barcode:
+ *                 type: string
+ *               code:
+ *                 type: string
+ *               name:
+ *                 type: string
+ *               shortDescription:
  *                 type: string
  *               description:
  *                 type: string
+ *               brand:
+ *                 type: string
  *               category:
  *                 type: string
- *                 enum: ["game", "video", "artwork", "music"]
- *               thumbnail_url:
+ *               price:
+ *                 type: number
+ *               volume:
  *                 type: string
- *               content_url:
+ *               imageUrl:
  *                 type: string
+ *               tags:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               attributes:
+ *                 type: object
+ *                 additionalProperties: true
+ *               aiDescription:
+ *                 type: string
+ *               stockQty:
+ *                 type: integer
+ *               isActive:
+ *                 type: boolean
  *     responses:
  *       201:
- *         description: Content created successfully
- *         content:
+ *         description: product created successfully
+ *         product:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
  *                 _id:
  *                   type: string
- *                 title:
+ *                 barcode:
+ *                   type: string
+ *                 code:
+ *                   type: string
+ *                 name:
+ *                   type: string
+ *                 shortDescription:
  *                   type: string
  *                 description:
  *                   type: string
+ *                 brand:
+ *                   type: string
  *                 category:
  *                   type: string
- *                 thumbnail_url:
+ *                 price:
+ *                   type: number
+ *                 volume:
  *                   type: string
- *                 content_url:
+ *                 imageUrl:
  *                   type: string
+ *                 tags:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                 attributes:
+ *                   type: object
+ *                   additionalProperties: true
+ *                 aiDescription:
+ *                   type: string
+ *                 stockQty:
+ *                   type: integer
+ *                 isActive:
+ *                   type: boolean
  *       401:
  *         description: Unauthorized
  */
 router.post("/", authMiddleware, productController.createProduct);
 
-// /**
-//  * @swagger
-//  * /api/content:
-//  *   get:
-//  *     summary: Get all content items
-//  *     tags: [Content]
-//  *     responses:
-//  *       200:
-//  *         description: List of all content items
-//  *         content:
-//  *           application/json:
-//  *             schema:
-//  *               type: array
-//  *               items:
-//  *                 type: object
-//  *                 properties:
-//  *                   _id:
-//  *                     type: string
-//  *                   title:
-//  *                     type: string
-//  *                   description:
-//  *                     type: string
-//  *                   category:
-//  *                     type: string
-//  *                   thumbnail_url:
-//  *                     type: string
-//  *                   content_url:
-//  *                     type: string
-//  */
+/**
+ * @swagger
+ * /api/product:
+ *   get:
+ *     summary: Get all product items
+ *     tags: [product]
+ *     responses:
+ *       200:
+ *         description: List of all product items
+ *         product:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   _id:
+ *                     type: string
+ *                   barcode:
+ *                     type: string
+ *                   code:
+ *                     type: string
+ *                   name:
+ *                     type: string
+ *                   shortDescription:
+ *                     type: string
+ *                   description:
+ *                     type: string
+ *                   brand:
+ *                     type: string
+ *                   category:
+ *                     type: string
+ *                   price:
+ *                     type: number
+ *                   volume:
+ *                     type: string
+ *                   imageUrl:
+ *                     type: string
+ *                   tags:
+ *                     type: array
+ *                     items:
+ *                       type: string
+ *                   attributes:
+ *                     type: object
+ *                     additionalProperties: true
+ *                   aiDescription:
+ *                     type: string
+ *                   stockQty:
+ *                     type: integer
+ *                   isActive:
+ *                     type: boolean
+ */
 router.get("/", authMiddleware, productController.getProducts);
 
 /**
  * @swagger
- * /api/content/{id}:
+ * /api/product/{id}:
  *   get:
- *     summary: Get a specific content item by ID
- *     tags: [Content]
+ *     summary: Get a specific product item by ID
+ *     tags: [product]
  *     parameters:
  *       - in: path
  *         name: id
  *         schema:
  *           type: string
  *         required: true
- *         description: The content ID
+ *         description: The product ID
  *     responses:
  *       200:
- *         description: The content item details
- *         content:
+ *         description: The product item details
+ *         product:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
  *                 _id:
  *                   type: string
- *                 title:
+ *                 barcode:
+ *                   type: string
+ *                 code:
+ *                   type: string
+ *                 name:
+ *                   type: string
+ *                 shortDescription:
  *                   type: string
  *                 description:
  *                   type: string
+ *                 brand:
+ *                   type: string
  *                 category:
  *                   type: string
- *                 thumbnail_url:
+ *                 price:
+ *                   type: number
+ *                 volume:
  *                   type: string
- *                 content_url:
+ *                 imageUrl:
  *                   type: string
+ *                 tags:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                 attributes:
+ *                   type: object
+ *                   additionalProperties: true
+ *                 aiDescription:
+ *                   type: string
+ *                 stockQty:
+ *                   type: integer
+ *                 isActive:
+ *                   type: boolean
  *       404:
- *         description: Content not found
+ *         description: product not found
  */
 router.get("/:id", authMiddleware, productController.getProductById);
 
 /**
  * @swagger
- * /api/content/{id}:
+ * /api/product/{id}:
  *   put:
- *     summary: Update a content item by ID
- *     tags: [Content]
+ *     summary: Update a product item by ID
+ *     tags: [product]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -145,41 +236,103 @@ router.get("/:id", authMiddleware, productController.getProductById);
  *         schema:
  *           type: string
  *         required: true
- *         description: The content ID
+ *         description: The product ID
  *     requestBody:
  *       required: true
- *       content:
+ *       product:
  *         application/json:
  *           schema:
  *             type: object
  *             properties:
- *               title:
+ *               barcode:
+ *                 type: string
+ *               code:
+ *                 type: string
+ *               name:
+ *                 type: string
+ *               shortDescription:
  *                 type: string
  *               description:
  *                 type: string
+ *               brand:
+ *                 type: string
  *               category:
  *                 type: string
- *                 enum: ["game", "video", "artwork", "music"]
- *               thumbnail_url:
+ *               price:
+ *                 type: number
+ *               volume:
  *                 type: string
- *               content_url:
+ *               imageUrl:
  *                 type: string
+ *               tags:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               attributes:
+ *                 type: object
+ *                 additionalProperties: true
+ *               aiDescription:
+ *                 type: string
+ *               stockQty:
+ *                 type: integer
+ *               isActive:
+ *                 type: boolean
  *     responses:
  *       200:
- *         description: Content updated successfully
+ *         description: Product updated successfully
+ *         product:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 _id:
+ *                   type: string
+ *                 barcode:
+ *                   type: string
+ *                 code:
+ *                   type: string
+ *                 name:
+ *                   type: string
+ *                 shortDescription:
+ *                   type: string
+ *                 description:
+ *                   type: string
+ *                 brand:
+ *                   type: string
+ *                 category:
+ *                   type: string
+ *                 price:
+ *                   type: number
+ *                 volume:
+ *                   type: string
+ *                 imageUrl:
+ *                   type: string
+ *                 tags:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                 attributes:
+ *                   type: object
+ *                   additionalProperties: true
+ *                 aiDescription:
+ *                   type: string
+ *                 stockQty:
+ *                   type: integer
+ *                 isActive:
+ *                   type: boolean
  *       401:
  *         description: Unauthorized
  *       404:
- *         description: Content not found
+ *         description: product not found
  */
 router.put("/:id", authMiddleware, productController.updateProductById);
 
 /**
  * @swagger
- * /api/content/{id}:
+ * /api/product/{id}:
  *   delete:
- *     summary: Delete a content item by ID
- *     tags: [Content]
+ *     summary: Delete a product item by ID
+ *     tags: [product]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -188,14 +341,14 @@ router.put("/:id", authMiddleware, productController.updateProductById);
  *         schema:
  *           type: string
  *         required: true
- *         description: The content ID
+ *         description: The product ID
  *     responses:
  *       200:
- *         description: Content deleted successfully
+ *         description: product deleted successfully
  *       401:
  *         description: Unauthorized
  *       404:
- *         description: Content not found
+ *         description: product not found
  */
 router.delete("/:id", authMiddleware, productController.deleteProductById);
 
