@@ -52,164 +52,147 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-import type { Product } from "../types";
+// ** 💡 new, fully‑separated modal components **
 import { ProductViewModal } from "../components/modals/product-view-modal";
 import { ProductFormModal } from "../components/modals/product-form-modal";
 import { ProductDeleteModal } from "../components/modals/product-delete-modal";
 import { ImportExportModal } from "../components/modals/import-export-modal";
 
+import type { Product } from "../types";
+
+/*****************************************************************
+ 🗂️  DASHBOARD
+*****************************************************************/
 const ProductDashboard: React.FC = () => {
-  /* STATE */
+  /**                           ░ STATE ░                         **/
   const [products, setProducts] = useState<Product[]>([]);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+
+  // individual modal flags (no more reducer horror 🙂)
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [formModalOpen, setFormModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [importExportModalOpen, setImportExportModalOpen] = useState(false);
-  const [formModalType, setFormModalType] = useState<"create" | "update">(
-    "create"
-  );
+  const [formMode, setFormMode] = useState<"create" | "update">("create");
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+
+  // list helpers
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
-  const [selectedProducts, setSelectedProducts] = useState<Set<string>>(
-    new Set()
-  );
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [selectAll, setSelectAll] = useState(false);
 
-  /************* fetch *************/
-  const fetchProducts = async () => {
+  /**                         ░ NETWORK ░                        **/
+  async function fetchProducts() {
     try {
       const res = await fetch(
         `${import.meta.env.VITE_APP_BACKEND_URI}/api/products`,
         {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
       );
-
       if (res.status === 401) {
         handleLogout();
         return;
       }
-
       const raw = await res.json();
-      const list: Product[] = Array.isArray(raw) ? raw : raw.products ?? [];
-      setProducts(list);
-    } catch (err) {
-      console.error("Error fetching products", err);
+      setProducts(Array.isArray(raw) ? raw : raw.products ?? []);
+    } catch (e) {
+      console.error("fetchProducts()", e);
     }
-  };
-
+  }
   useEffect(() => {
     fetchProducts();
   }, []);
 
-  /************* Auth *************/
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    window.location.href = "/";
-  };
-
-  /************* CRUD helpers *************/
-  const handleDelete = async (p: Product) => {
+  async function deleteProduct(p: Product) {
     try {
       const res = await fetch(
         `${import.meta.env.VITE_APP_BACKEND_URI}/api/products/${p._id}`,
         {
           method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
       );
-      if (res.ok) {
-        fetchProducts();
-        setDeleteModalOpen(false);
-        setSelectedProduct(null);
-      }
-    } catch (err) {
-      console.error("Error deleting product", err);
+      if (!res.ok) throw new Error();
+      fetchProducts();
+      closeAll();
+    } catch (e) {
+      console.error("deleteProduct()", e);
     }
-  };
+  }
 
-  /* Modal handlers */
-  const openViewModal = (product: Product) => {
-    setSelectedProduct(product);
-    setViewModalOpen(true);
-  };
+  /**                       ░ AUTH / NAV ░                       **/
+  function handleLogout() {
+    localStorage.removeItem("token");
+    window.location.href = "/";
+  }
 
-  const openFormModal = (type: "create" | "update", product?: Product) => {
-    setFormModalType(type);
-    setSelectedProduct(product || null);
-    setFormModalOpen(true);
-  };
-
-  const openDeleteModal = (product: Product) => {
-    setSelectedProduct(product);
-    setDeleteModalOpen(true);
-  };
-
-  const closeAllModals = () => {
+  /**                        ░ MODAL API ░                       **/
+  function openViewModal(p: Product) {
+    setSelectedProduct(p);
+    requestAnimationFrame(() => setViewModalOpen(true));
+  }
+  function openFormModal(mode: "create" | "update", p?: Product) {
+    setFormMode(mode);
+    setSelectedProduct(p ?? null);
+    requestAnimationFrame(() => setFormModalOpen(true));
+  }
+  function openDeleteModal(p: Product) {
+    setSelectedProduct(p);
+    requestAnimationFrame(() => setDeleteModalOpen(true));
+  }
+  function closeAll() {
     setViewModalOpen(false);
     setFormModalOpen(false);
     setDeleteModalOpen(false);
     setImportExportModalOpen(false);
     setSelectedProduct(null);
-  };
+  }
 
-  // Selection handlers
-  const handleSelectProduct = (productId: string) => {
-    const newSelected = new Set(selectedProducts);
-    if (newSelected.has(productId)) {
-      newSelected.delete(productId);
-    } else {
-      newSelected.add(productId);
-    }
-    setSelectedProducts(newSelected);
-    setSelectAll(newSelected.size === filteredProducts.length);
-  };
-
-  const handleSelectAll = () => {
+  /**                       ░ LIST HELPERS ░                     **/
+  function toggleSelect(id: string) {
+    setSelectedIds((prev) => {
+      const copy = new Set(prev);
+      copy.has(id) ? copy.delete(id) : copy.add(id);
+      setSelectAll(copy.size === filtered.length);
+      return copy;
+    });
+  }
+  function toggleSelectAll() {
     if (selectAll) {
-      setSelectedProducts(new Set());
+      setSelectedIds(new Set());
       setSelectAll(false);
     } else {
-      setSelectedProducts(new Set(filteredProducts.map((p) => p._id)));
+      setSelectedIds(new Set(filtered.map((p) => p._id)));
       setSelectAll(true);
     }
-  };
+  }
 
-  // Filter products
-  const filteredProducts = products.filter((product) => {
-    const matchesSearch =
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.brand?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.code?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory =
-      filterCategory === "all" || product.category === filterCategory;
-    return matchesSearch && matchesCategory;
+  /**                       ░ DERIVED DATA ░                     **/
+  const filtered = products.filter((p) => {
+    const t = searchTerm.toLowerCase();
+    const matchSearch = [p.name, p.brand, p.category, p.code].some((s) =>
+      s?.toLowerCase().includes(t)
+    );
+    const matchCat = filterCategory === "all" || p.category === filterCategory;
+    return matchSearch && matchCat;
   });
-
-  // Get unique categories
   const categories = Array.from(
     new Set(products.map((p) => p.category).filter(Boolean))
   );
-
-  // Calculate stats
   const totalProducts = products.length;
   const activeProducts = products.filter((p) => p.isActive).length;
 
+  /******************************* JSX *******************************/
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
-      {/* HEADER */}
+      {/* ░░ HEADER ░░ */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-              <Droplets className="h-8 w-8 text-blue-600" />
-              Beauty Product Tracker
+              <Droplets className="h-8 w-8 text-blue-600" /> Beauty Product
+              Tracker
             </h1>
             <p className="text-gray-600 mt-1">
               Manage your shampoo and beauty product inventory
@@ -220,77 +203,44 @@ const ProductDashboard: React.FC = () => {
               onClick={() => openFormModal("create")}
               className="bg-blue-600 hover:bg-blue-700"
             >
-              <Plus className="h-4 w-4 mr-2" />
-              New Product
+              <Plus className="h-4 w-4 mr-2" /> New Product
             </Button>
             <Button
               onClick={() => setImportExportModalOpen(true)}
               variant="outline"
             >
-              <Upload className="h-4 w-4 mr-2" />
-              Import/Export
+              <Upload className="h-4 w-4 mr-2" /> Import/Export
             </Button>
             <Button onClick={handleLogout} variant="outline">
-              <LogOut className="h-4 w-4 mr-2" />
-              Logout
+              <LogOut className="h-4 w-4 mr-2" /> Logout
             </Button>
           </div>
         </div>
 
-        {/* STATS CARDS */}
+        {/* ░░ STATS ░░ */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Total Products
-              </CardTitle>
-              <Package className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{totalProducts}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Active Products
-              </CardTitle>
-              <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">
-                {activeProducts}
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="opacity-50 pointer-events-none relative">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
-                Stock Info
-                <span className="ml-2 text-orange-600 font-bold"></span>
-              </CardTitle>
-              <Tag className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-gray-600 line-through"></div>
-            </CardContent>
-          </Card>
-          <Card className="opacity-50 pointer-events-none relative">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Value</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent></CardContent>
-          </Card>
+          <StatCard
+            icon={Package}
+            label="Total Products"
+            value={totalProducts}
+          />
+          <StatCard
+            icon={ShoppingCart}
+            label="Active Products"
+            value={activeProducts}
+            accent="text-green-600"
+          />
+          <PlaceholderStat label="Stock Info" />
+          <PlaceholderStat label="Total Value" />
         </div>
 
-        {/* FILTERS */}
+        {/* ░░ FILTERS ░░ */}
         <Card className="mb-6">
           <CardContent className="pt-6">
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex-1">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
                   <Input
                     placeholder="Search products, brands, categories, or SKU..."
                     value={searchTerm}
@@ -305,9 +255,9 @@ const ProductDashboard: React.FC = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Categories</SelectItem>
-                  {categories.map((category) => (
-                    <SelectItem key={category} value={category!}>
-                      {category}
+                  {categories.map((c) => (
+                    <SelectItem key={c} value={c!}>
+                      {c}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -317,15 +267,13 @@ const ProductDashboard: React.FC = () => {
         </Card>
       </div>
 
-      {/* PRODUCTS TABLE */}
+      {/* ░░ TABLE ░░ */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
-            <span>Products ({filteredProducts.length})</span>
-            {selectedProducts.size > 0 && (
-              <Badge variant="secondary">
-                {selectedProducts.size} selected
-              </Badge>
+            <span>Products ({filtered.length})</span>
+            {selectedIds.size > 0 && (
+              <Badge variant="secondary">{selectedIds.size} selected</Badge>
             )}
           </CardTitle>
           <CardDescription>
@@ -340,7 +288,7 @@ const ProductDashboard: React.FC = () => {
                   <TableHead className="w-12">
                     <Checkbox
                       checked={selectAll}
-                      onCheckedChange={handleSelectAll}
+                      onCheckedChange={toggleSelectAll}
                     />
                   </TableHead>
                   <TableHead className="w-20">Image</TableHead>
@@ -350,117 +298,98 @@ const ProductDashboard: React.FC = () => {
                   <TableHead>Category</TableHead>
                   <TableHead>Price</TableHead>
                   <TableHead>Volume</TableHead>
-                  <TableHead className="w-20">Actions</TableHead>
+                  <TableHead className="w-24">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredProducts.map((product) => (
-                  <TableRow key={product._id} className="hover:bg-muted/50">
+                {filtered.map((p) => (
+                  <TableRow
+                    key={p._id}
+                    className="hover:bg-muted/50 cursor-pointer"
+                    onClick={(e) => {
+                      // Prevent row click if clicking on a button or checkbox
+                      if (
+                        (e.target as HTMLElement).closest("button") ||
+                        (e.target as HTMLElement).closest(
+                          "input[type='checkbox']"
+                        )
+                      ) {
+                        return;
+                      }
+                      openViewModal(p);
+                    }}
+                  >
                     <TableCell>
                       <Checkbox
-                        checked={selectedProducts.has(product._id)}
-                        onCheckedChange={() => handleSelectProduct(product._id)}
+                        checked={selectedIds.has(p._id)}
+                        onCheckedChange={() => toggleSelect(p._id)}
                       />
                     </TableCell>
                     <TableCell>
-                      <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-gray-100">
-                        <Image
-                          src={
-                            // eslint-disable-next-line no-constant-binary-expression
-                            product.imageUrl ||
-                            "/placeholder.svg?height=64&width=64" ||
-                            "/placeholder.svg"
-                          }
-                          alt={product.name}
-                          width={64}
-                          height={64}
-                          className="object-cover w-full h-full"
-                        />
-                      </div>
+                      <Thumb src={p.imageUrl} alt={p.name} />
                     </TableCell>
                     <TableCell>
-                      <div className="text-sm font-mono font-medium">
-                        {product.code || product.barcode || "—"}
-                      </div>
+                      <code className="text-sm font-mono">
+                        {p.code || p.barcode || "—"}
+                      </code>
                     </TableCell>
                     <TableCell>
                       <div className="space-y-1">
-                        <div className="font-medium text-sm">
-                          {product.name}
-                        </div>
-                        {product.shortDescription && (
+                        <div className="font-medium text-sm">{p.name}</div>
+                        {p.shortDescription && (
                           <div className="text-xs text-muted-foreground line-clamp-2">
-                            {product.shortDescription}
+                            {p.shortDescription}
                           </div>
                         )}
                       </div>
                     </TableCell>
+                    <TableCell className="text-sm">{p.brand || "—"}</TableCell>
                     <TableCell>
-                      <div className="text-sm">{product.brand || "—"}</div>
-                    </TableCell>
-                    <TableCell>
-                      {product.category ? (
+                      {p.category ? (
                         <Badge variant="secondary" className="text-xs">
-                          {product.category}
+                          {p.category}
                         </Badge>
                       ) : (
                         "—"
                       )}
                     </TableCell>
-                    <TableCell>
-                      <div className="text-sm font-medium">
-                        {product.price
-                          ? `€${Number.parseInt(product.price, 10)}`
-                          : "—"}
-                      </div>
+                    <TableCell className="text-sm font-medium">
+                      {p.price ? `€${parseFloat(p.price).toFixed(2)}` : "—"}
                     </TableCell>
+                    <TableCell className="text-sm">{p.volume || "—"}</TableCell>
                     <TableCell>
-                      <div className="text-sm">
-                        {product.volume ? `${product.volume}` : "—"}
+                      <div className="flex items-center gap-2">
+                        {/* <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label="View"
+                          onClick={() => openViewModal(p)}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button> */}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label="Edit"
+                          onClick={() => openFormModal("update", p)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label="Delete"
+                          onClick={() => openDeleteModal(p)}
+                        >
+                          <Trash2 className="h-4 w-4 text-red-600" />
+                        </Button>
+                        <Badge
+                          variant={p.isActive ? "default" : "secondary"}
+                          className="ml-2"
+                        >
+                          {p.isActive ? "Active" : "Inactive"}
+                        </Badge>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onClick={() => openViewModal(product)}
-                          >
-                            <Eye className="h-4 w-4 mr-2" />
-                            View Details
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => openFormModal("update", product)}
-                          >
-                            <Edit className="h-4 w-4 mr-2" />
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem disabled>
-                            <div className="flex items-center justify-between w-full">
-                              <span className="text-xs">Status:</span>
-                              <Badge
-                                variant={
-                                  product.isActive ? "default" : "secondary"
-                                }
-                                className="text-xs ml-2"
-                              >
-                                {product.isActive ? "Active" : "Inactive"}
-                              </Badge>
-                            </div>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => openDeleteModal(product)}
-                            className="text-red-600"
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -470,42 +399,95 @@ const ProductDashboard: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* MODALS */}
+      {/* ░░ MODALS ░░ */}
       <ProductViewModal
         isOpen={viewModalOpen}
         product={selectedProduct}
-        onClose={closeAllModals}
-        onEdit={(product) => {
-          closeAllModals();
-          setTimeout(() => openFormModal("update", product), 100);
+        onClose={closeAll}
+        onEdit={(p) => {
+          closeAll();
+          setTimeout(() => openFormModal("update", p), 100);
         }}
       />
 
       <ProductFormModal
         isOpen={formModalOpen}
-        type={formModalType}
+        type={formMode}
         product={selectedProduct}
-        onClose={closeAllModals}
+        onClose={closeAll}
         onSuccess={() => {
           fetchProducts();
-          closeAllModals();
+          closeAll();
         }}
       />
 
       <ProductDeleteModal
         isOpen={deleteModalOpen}
         product={selectedProduct}
-        onClose={closeAllModals}
-        onConfirm={handleDelete}
+        onClose={closeAll}
+        onConfirm={deleteProduct}
       />
 
       <ImportExportModal
         isOpen={importExportModalOpen}
-        selectedProducts={selectedProducts}
+        selectedProducts={selectedIds}
         onClose={() => setImportExportModalOpen(false)}
       />
     </div>
   );
 };
+
+/*****************************************************************
+ 🩻 SMALL PRESENTATIONAL BITS
+*****************************************************************/
+function Thumb({ src, alt }: { src?: string; alt: string }) {
+  return (
+    <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-gray-100">
+      <Image
+        src={src || "/placeholder.svg?height=64&width=64"}
+        alt={alt}
+        width={64}
+        height={64}
+        className="object-cover w-full h-full"
+      />
+    </div>
+  );
+}
+function StatCard({
+  icon: Icon,
+  label,
+  value,
+  accent = "",
+}: {
+  icon: React.ElementType;
+  label: string;
+  value?: number | string;
+  accent?: string;
+}) {
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium">{label}</CardTitle>
+        <Icon className="h-4 w-4 text-muted-foreground" />
+      </CardHeader>
+      <CardContent>
+        <div className={`text-2xl font-bold ${accent}`}>{value}</div>
+      </CardContent>
+    </Card>
+  );
+}
+function PlaceholderStat({ label }: { label: string }) {
+  return (
+    <Card className="opacity-50 pointer-events-none">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium text-gray-600">
+          {label}
+        </CardTitle>
+        <Tag className="h-4 w-4 text-muted-foreground" />
+      </CardHeader>
+      <CardContent></CardContent>
+    </Card>
+  );
+}
 
 export default ProductDashboard;
