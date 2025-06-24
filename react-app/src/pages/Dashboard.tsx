@@ -17,8 +17,10 @@ import {
   Trash2,
   Eye,
   ShoppingCart,
+  Sparkles,
+  FileText,
 } from "lucide-react";
-import Image from "next/image";
+import { Image } from "@unpic/react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -62,7 +64,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 /***************************
  *  Product interface (same shape as back‑end)
@@ -76,14 +77,8 @@ export interface Product {
   description?: string;
   brand?: string;
   category?: string;
-  price?: {
-    amount: number;
-    currency: string;
-  };
-  volume?: {
-    value: number;
-    unit: string;
-  };
+  price?: string;
+  volume?: string;
   imageUrl?: string;
   tags?: string[];
   attributes?: Record<string, string>;
@@ -107,10 +102,14 @@ const ProductDashboard: React.FC = () => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState<
-    "create" | "update" | "delete" | "import-export" | "view"
+    "create" | "update" | "view" | "delete" | "import-export"
   >("create");
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
+  const [selectedProducts, setSelectedProducts] = useState<Set<string>>(
+    new Set()
+  );
+  const [selectAll, setSelectAll] = useState(false);
 
   /************* fetch *************/
   const fetchProducts = async () => {
@@ -169,34 +168,45 @@ const ProductDashboard: React.FC = () => {
   };
 
   /* UI helpers */
-  const openCreateModal = () => {
+  function openModal(type: any, p?: Product) {
+    if (p) {
+      setSelectedProduct(p);
+      // use layout effect or nextTick to ensure state is ready
+      setTimeout(() => {
+        setModalType(type);
+        setIsModalOpen(true);
+      });
+    } else {
+      setModalType(type);
+      setIsModalOpen(true);
+    }
+  }
+
+  const closeModal = () => {
+    setIsModalOpen(false);
     setSelectedProduct(null);
-    setModalType("create");
-    setIsModalOpen(true);
   };
 
-  const openUpdateModal = (p: Product) => {
-    setSelectedProduct(p);
-    setModalType("update");
-    setIsModalOpen(true);
+  // Selection handlers
+  const handleSelectProduct = (productId: string) => {
+    const newSelected = new Set(selectedProducts);
+    if (newSelected.has(productId)) {
+      newSelected.delete(productId);
+    } else {
+      newSelected.add(productId);
+    }
+    setSelectedProducts(newSelected);
+    setSelectAll(newSelected.size === filteredProducts.length);
   };
 
-  const openViewModal = (p: Product) => {
-    setSelectedProduct(p);
-    setModalType("view");
-    setIsModalOpen(true);
-  };
-
-  const openDeleteModal = (p: Product) => {
-    setSelectedProduct(p);
-    setModalType("delete");
-    setIsModalOpen(true);
-  };
-
-  const openImportExportModal = () => {
-    setSelectedProduct(null);
-    setModalType("import-export");
-    setIsModalOpen(true);
+  const handleSelectAll = () => {
+    if (selectAll) {
+      setSelectedProducts(new Set());
+      setSelectAll(false);
+    } else {
+      setSelectedProducts(new Set(filteredProducts.map((p) => p._id)));
+      setSelectAll(true);
+    }
   };
 
   // Filter products
@@ -204,7 +214,8 @@ const ProductDashboard: React.FC = () => {
     const matchesSearch =
       product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.brand?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.category?.toLowerCase().includes(searchTerm.toLowerCase());
+      product.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.code?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory =
       filterCategory === "all" || product.category === filterCategory;
     return matchesSearch && matchesCategory;
@@ -220,7 +231,7 @@ const ProductDashboard: React.FC = () => {
   const activeProducts = products.filter((p) => p.isActive).length;
   const lowStockProducts = products.filter((p) => p.stockQty < 10).length;
   const totalValue = products.reduce(
-    (sum, p) => sum + (p.price?.amount || 0) * p.stockQty,
+    (sum, p) => sum + (p.price ? parseInt(p.price, 10) : 0) * p.stockQty,
     0
   );
 
@@ -241,13 +252,16 @@ const ProductDashboard: React.FC = () => {
           </div>
           <div className="flex items-center gap-3">
             <Button
-              onClick={openCreateModal}
+              onClick={() => openModal("create")}
               className="bg-blue-600 hover:bg-blue-700"
             >
               <Plus className="h-4 w-4 mr-2" />
               New Product
             </Button>
-            <Button onClick={openImportExportModal} variant="outline">
+            <Button
+              onClick={() => openModal("import-export")}
+              variant="outline"
+            >
               <Upload className="h-4 w-4 mr-2" />
               Import/Export
             </Button>
@@ -284,24 +298,35 @@ const ProductDashboard: React.FC = () => {
               </div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="opacity-50 pointer-events-none relative">
+            <div className="absolute inset-0 flex items-center justify-center z-10">
+              <span className="text-gray-400 text-lg font-semibold line-through"></span>
+            </div>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Low Stock</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-600 ">
+                Stock Info
+                <span className="ml-2 text-orange-600 font-bold"></span>
+              </CardTitle>
               <Tag className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-orange-600">
-                {lowStockProducts}
-              </div>
+              <div className="text-2xl font-bold text-gray-600 line-through"></div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="opacity-50 pointer-events-none relative">
+            <div className="absolute inset-0 flex items-center justify-center z-10">
+              {/* <span className="text-gray-400 text-lg font-semibold line-through">
+                No Info
+              </span> */}
+            </div>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Value</CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">€{totalValue.toFixed(2)}</div>
+              {/* <div className="text-2xl font-bold line-through">
+                €{totalValue.toFixed(2)}
+              </div> */}
             </CardContent>
           </Card>
         </div>
@@ -314,7 +339,7 @@ const ProductDashboard: React.FC = () => {
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                   <Input
-                    placeholder="Search products, brands, or categories..."
+                    placeholder="Search products, brands, categories, or SKU..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10"
@@ -342,7 +367,14 @@ const ProductDashboard: React.FC = () => {
       {/* PRODUCTS TABLE */}
       <Card>
         <CardHeader>
-          <CardTitle>Products ({filteredProducts.length})</CardTitle>
+          <CardTitle className="flex items-center justify-between">
+            <span>Products ({filteredProducts.length})</span>
+            {selectedProducts.size > 0 && (
+              <Badge variant="secondary">
+                {selectedProducts.size} selected
+              </Badge>
+            )}
+          </CardTitle>
           <CardDescription>
             Manage your beauty product inventory with detailed information
           </CardDescription>
@@ -352,18 +384,31 @@ const ProductDashboard: React.FC = () => {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-12">
+                    <Checkbox
+                      checked={selectAll}
+                      onCheckedChange={handleSelectAll}
+                    />
+                  </TableHead>
                   <TableHead className="w-20">Image</TableHead>
-                  <TableHead>Product Details</TableHead>
-                  <TableHead>Brand & Category</TableHead>
-                  <TableHead>Price & Volume</TableHead>
-                  <TableHead>Stock</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>SKU</TableHead>
+                  <TableHead>Product Name</TableHead>
+                  <TableHead>Brand</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Price</TableHead>
+                  <TableHead>Volume</TableHead>
                   <TableHead className="w-20">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredProducts.map((product) => (
                   <TableRow key={product._id} className="hover:bg-muted/50">
+                    <TableCell>
+                      <Checkbox
+                        checked={selectedProducts.has(product._id)}
+                        onCheckedChange={() => handleSelectProduct(product._id)}
+                      />
+                    </TableCell>
                     <TableCell>
                       <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-gray-100">
                         <Image
@@ -372,9 +417,15 @@ const ProductDashboard: React.FC = () => {
                             "/placeholder.svg?height=64&width=64"
                           }
                           alt={product.name}
-                          fill
-                          className="object-cover"
+                          width={64}
+                          height={64}
+                          className="object-cover w-full h-full"
                         />
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm font-mono font-medium">
+                        {product.code || product.barcode || "—"}
                       </div>
                     </TableCell>
                     <TableCell>
@@ -387,72 +438,31 @@ const ProductDashboard: React.FC = () => {
                             {product.shortDescription}
                           </div>
                         )}
-                        <div className="text-xs text-muted-foreground">
-                          SKU: {product.code || product.barcode}
-                        </div>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="space-y-1">
-                        <div className="font-medium text-sm">
-                          {product.brand || "—"}
-                        </div>
-                        {product.category && (
-                          <Badge variant="secondary" className="text-xs">
-                            {product.category}
-                          </Badge>
-                        )}
+                      <div className="text-sm">{product.brand || "—"}</div>
+                    </TableCell>
+                    <TableCell>
+                      {product.category ? (
+                        <Badge variant="secondary" className="text-xs">
+                          {product.category}
+                        </Badge>
+                      ) : (
+                        "—"
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm font-medium">
+                        {product.price
+                          ? `€${parseInt(product.price, 10)}`
+                          : "—"}
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="space-y-1">
-                        <div className="font-medium text-sm">
-                          {product.price?.amount
-                            ? `€${product.price.amount.toFixed(2)}`
-                            : "—"}
-                        </div>
-                        {product.volume && (
-                          <div className="text-xs text-muted-foreground">
-                            {product.volume.value}
-                            {product.volume.unit}
-                          </div>
-                        )}
+                      <div className="text-sm">
+                        {product.volume ? `${product.volume}` : "—"}
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <div
-                          className={`font-medium text-sm ${
-                            product.stockQty < 10
-                              ? "text-orange-600"
-                              : product.stockQty === 0
-                              ? "text-red-600"
-                              : "text-green-600"
-                          }`}
-                        >
-                          {product.stockQty} units
-                        </div>
-                        {product.stockQty < 10 && product.stockQty > 0 && (
-                          <Badge
-                            variant="outline"
-                            className="text-xs text-orange-600"
-                          >
-                            Low Stock
-                          </Badge>
-                        )}
-                        {product.stockQty === 0 && (
-                          <Badge variant="destructive" className="text-xs">
-                            Out of Stock
-                          </Badge>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={product.isActive ? "default" : "secondary"}
-                      >
-                        {product.isActive ? "Active" : "Inactive"}
-                      </Badge>
                     </TableCell>
                     <TableCell>
                       <DropdownMenu>
@@ -463,19 +473,32 @@ const ProductDashboard: React.FC = () => {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem
-                            onClick={() => openViewModal(product)}
+                            onClick={() => openModal("view", product)}
                           >
                             <Eye className="h-4 w-4 mr-2" />
                             View Details
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            onClick={() => openUpdateModal(product)}
+                            onClick={() => openModal("update", product)}
                           >
                             <Edit className="h-4 w-4 mr-2" />
                             Edit
                           </DropdownMenuItem>
+                          <DropdownMenuItem disabled>
+                            <div className="flex items-center justify-between w-full">
+                              <span className="text-xs">Status:</span>
+                              <Badge
+                                variant={
+                                  product.isActive ? "default" : "secondary"
+                                }
+                                className="text-xs ml-2"
+                              >
+                                {product.isActive ? "Active" : "Inactive"}
+                              </Badge>
+                            </div>
+                          </DropdownMenuItem>
                           <DropdownMenuItem
-                            onClick={() => openDeleteModal(product)}
+                            onClick={() => openModal("delete", product)}
                             className="text-red-600"
                           >
                             <Trash2 className="h-4 w-4 mr-2" />
@@ -492,14 +515,16 @@ const ProductDashboard: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* MODAL */}
+      {/* UNIFIED MODAL */}
       {isModalOpen && (
-        <ProductModal
+        <UnifiedProductModal
           modalType={modalType}
           product={selectedProduct}
-          onClose={() => setIsModalOpen(false)}
+          selectedProducts={selectedProducts}
+          onClose={closeModal}
           onDeleted={handleDelete}
           refresh={fetchProducts}
+          openModal={openModal}
         />
       )}
     </div>
@@ -507,24 +532,30 @@ const ProductDashboard: React.FC = () => {
 };
 
 /***************************
- *  Modal
+ *  Unified Modal Component
  ***************************/
-interface ModalProps {
-  modalType: "create" | "update" | "delete" | "import-export" | "view";
+interface UnifiedModalProps {
+  modalType: "create" | "update" | "view" | "delete" | "import-export";
   product: Product | null;
+  selectedProducts: Set<string>;
   onClose: () => void;
   onDeleted: (p: Product) => void;
   refresh: () => void;
+  openModal: (
+    type: "create" | "update" | "view" | "delete" | "import-export",
+    product?: Product
+  ) => void;
 }
 
-const ProductModal: React.FC<ModalProps> = ({
+const UnifiedProductModal: React.FC<UnifiedModalProps> = ({
   modalType,
   product,
+  selectedProducts,
   onClose,
   onDeleted,
   refresh,
+  openModal,
 }) => {
-  /* build default formData */
   const [formData, setFormData] = useState<Product>(
     product ?? {
       _id: "temp",
@@ -535,8 +566,8 @@ const ProductModal: React.FC<ModalProps> = ({
       description: "",
       brand: "",
       category: "",
-      price: { amount: 0, currency: "EUR" },
-      volume: { value: 0, unit: "mL" },
+      price: "0",
+      volume: "0mL",
       imageUrl: "",
       tags: [],
       attributes: {},
@@ -547,9 +578,59 @@ const ProductModal: React.FC<ModalProps> = ({
     }
   );
 
-  /* ----- handlers ----- */
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  // Update formData when product changes
+  useEffect(() => {
+    if (product) {
+      setFormData(product);
+    }
+  }, [product]);
+
   const handleInput = (key: keyof Product, value: any) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handlePriceChange = (amount: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      price: `${amount} ${prev.price?.split(" ")[1] || "EUR"}`,
+    }));
+  };
+
+  const handleVolumeChange = (value: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      volume: `${value}${prev.volume?.split(/(\d+)/)[2] || "mL"}`,
+    }));
+  };
+
+  const generateDescription = async (type: "short" | "full") => {
+    if (!formData.name) {
+      alert("Please enter a product name first");
+      return;
+    }
+
+    setIsGenerating(true);
+    try {
+      // Simulate AI generation - replace with actual API call
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      const generated =
+        type === "short"
+          ? `Premium ${formData.name} for all hair types. Gentle formula with natural ingredients.`
+          : `Experience the luxury of ${formData.name}, specially formulated for modern hair care needs. This premium product combines advanced technology with natural ingredients to deliver exceptional results. Suitable for all hair types, it provides deep nourishment while maintaining the natural balance of your hair. Perfect for daily use, this product will transform your hair care routine and leave your hair looking healthy, shiny, and beautiful.`;
+
+      if (type === "short") {
+        handleInput("shortDescription", generated);
+      } else {
+        handleInput("description", generated);
+      }
+    } catch (error) {
+      console.error("Error generating description:", error);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const saveProduct = async () => {
@@ -557,7 +638,7 @@ const ProductModal: React.FC<ModalProps> = ({
       modalType === "update" && product ? `/${product._id}` : ""
     }`;
     const method = modalType === "create" ? "POST" : "PUT";
-
+    console.log(formData);
     try {
       const res = await fetch(url, {
         method,
@@ -577,190 +658,19 @@ const ProductModal: React.FC<ModalProps> = ({
     }
   };
 
-  /* delete inside modal */
   const confirmDelete = () => {
     if (product) onDeleted(product);
   };
 
-  /* View modal */
-  if (modalType === "view" && product) {
-    return (
-      <Dialog open={true} onOpenChange={onClose}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Droplets className="h-5 w-5 text-blue-600" />
-              {product.name}
-            </DialogTitle>
-            <DialogDescription>
-              Product details and specifications
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-6">
-            {/* Product Image */}
-            {product.imageUrl && (
-              <div className="flex justify-center">
-                <div className="relative w-48 h-48 rounded-lg overflow-hidden bg-gray-100">
-                  <Image
-                    src={product.imageUrl || "/placeholder.svg"}
-                    alt={product.name}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-              </div>
-            )}
-
-            <Tabs defaultValue="basic" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="basic">Basic Info</TabsTrigger>
-                <TabsTrigger value="details">Details</TabsTrigger>
-                <TabsTrigger value="inventory">Inventory</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="basic" className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-sm font-medium">Brand</Label>
-                    <p className="text-sm text-muted-foreground">
-                      {product.brand || "—"}
-                    </p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium">Category</Label>
-                    <p className="text-sm text-muted-foreground">
-                      {product.category || "—"}
-                    </p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium">Price</Label>
-                    <p className="text-sm text-muted-foreground">
-                      {product.price?.amount ? `€${product.price.amount}` : "—"}
-                    </p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium">Volume</Label>
-                    <p className="text-sm text-muted-foreground">
-                      {product.volume
-                        ? `${product.volume.value}${product.volume.unit}`
-                        : "—"}
-                    </p>
-                  </div>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="details" className="space-y-4">
-                <div>
-                  <Label className="text-sm font-medium">
-                    Short Description
-                  </Label>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {product.shortDescription || "No description available"}
-                  </p>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium">
-                    Full Description
-                  </Label>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {product.description || "No detailed description available"}
-                  </p>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-sm font-medium">Barcode</Label>
-                    <p className="text-sm text-muted-foreground">
-                      {product.barcode || "—"}
-                    </p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium">SKU/Code</Label>
-                    <p className="text-sm text-muted-foreground">
-                      {product.code || "—"}
-                    </p>
-                  </div>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="inventory" className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-sm font-medium">
-                      Stock Quantity
-                    </Label>
-                    <p
-                      className={`text-sm font-medium ${
-                        product.stockQty < 10
-                          ? "text-orange-600"
-                          : product.stockQty === 0
-                          ? "text-red-600"
-                          : "text-green-600"
-                      }`}
-                    >
-                      {product.stockQty} units
-                    </p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium">Status</Label>
-                    <Badge
-                      variant={product.isActive ? "default" : "secondary"}
-                      className="mt-1"
-                    >
-                      {product.isActive ? "Active" : "Inactive"}
-                    </Badge>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium">Created</Label>
-                    <p className="text-sm text-muted-foreground">
-                      {new Date(product.createdAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium">Updated</Label>
-                    <p className="text-sm text-muted-foreground">
-                      {new Date(product.updatedAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-              </TabsContent>
-            </Tabs>
-          </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={onClose}>
-              Close
-            </Button>
-            <Button
-              onClick={() => {
-                onClose();
-                // Trigger edit modal
-                setTimeout(() => {
-                  const editEvent = new CustomEvent("openEditModal", {
-                    detail: product,
-                  });
-                  window.dispatchEvent(editEvent);
-                }, 100);
-              }}
-            >
-              <Edit className="h-4 w-4 mr-2" />
-              Edit Product
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    );
-  }
-
-  /* import / export modal */
+  // Import/Export Modal
   if (modalType === "import-export") {
     return (
       <Dialog open={true} onOpenChange={onClose}>
-        <DialogContent>
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Import / Export Products</DialogTitle>
             <DialogDescription>
-              Import products from CSV or export your current inventory
+              Choose to import new products or export existing ones
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -774,10 +684,23 @@ const ProductModal: React.FC<ModalProps> = ({
                 Export CSV
               </Button>
             </div>
-            <p className="text-sm text-muted-foreground">
-              Import/Export functionality will be implemented soon. This will
-              allow you to bulk manage your product inventory.
-            </p>
+            <div className="space-y-2">
+              <Label>Export Options:</Label>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" className="flex-1">
+                  Export All (
+                  {selectedProducts.size > 0 ? "All Products" : "All Products"})
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                  disabled={selectedProducts.size === 0}
+                >
+                  Export Selected ({selectedProducts.size})
+                </Button>
+              </div>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={onClose}>
@@ -789,7 +712,7 @@ const ProductModal: React.FC<ModalProps> = ({
     );
   }
 
-  /* delete modal */
+  // Delete Modal
   if (modalType === "delete" && product) {
     return (
       <Dialog open={true} onOpenChange={onClose}>
@@ -815,205 +738,394 @@ const ProductModal: React.FC<ModalProps> = ({
     );
   }
 
-  /* create / update form */
+  // Unified Product Modal (Create/Update/View)
+  const isReadOnly = modalType === "view";
+  const title =
+    modalType === "create"
+      ? "Create New Product"
+      : modalType === "update"
+      ? "Update Product"
+      : "Product Details";
+
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-[900px] max-h-[90vh] overflow-y-auto sm:max-w-6xl">
         <DialogHeader>
-          <DialogTitle>
-            {modalType === "create" ? "Create New Product" : "Update Product"}
+          <DialogTitle className="flex items-center gap-2">
+            <Droplets className="h-5 w-5 text-blue-600" />
+            {title}
           </DialogTitle>
           <DialogDescription>
             {modalType === "create"
               ? "Add a new beauty product to your inventory"
-              : "Update the product information"}
+              : modalType === "update"
+              ? "Update the product information"
+              : "View detailed product information"}
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
-          <Tabs defaultValue="basic" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="basic">Basic Info</TabsTrigger>
-              <TabsTrigger value="details">Details</TabsTrigger>
-              <TabsTrigger value="inventory">Inventory</TabsTrigger>
-            </TabsList>
+        <div className="space-y-6">
+          {/* Product Image Preview */}
+          {formData.imageUrl && (
+            <div className="flex justify-center">
+              <div className="relative w-32 h-32 rounded-lg overflow-hidden bg-gray-100">
+                <Image
+                  src={formData.imageUrl || "/placeholder.svg"}
+                  alt={formData.name || "Product"}
+                  width={128}
+                  height={128}
+                  className="object-cover w-full h-full"
+                />
+              </div>
+            </div>
+          )}
 
-            <TabsContent value="basic" className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="col-span-2">
-                  <Label htmlFor="name">Product Name *</Label>
+          {/* Basic Information */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
+              Basic Information
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="md:col-span-2">
+                <Label htmlFor="name">Product Name *</Label>
+                {isReadOnly ? (
+                  <p className="text-sm mt-1">{formData.name || "—"}</p>
+                ) : (
                   <Input
                     id="name"
                     value={formData.name}
                     onChange={(e) => handleInput("name", e.target.value)}
                     placeholder="e.g., Moisturizing Shampoo"
                   />
-                </div>
-                <div>
-                  <Label htmlFor="brand">Brand</Label>
+                )}
+              </div>
+              <div>
+                <Label htmlFor="brand">Brand</Label>
+                {isReadOnly ? (
+                  <p className="text-sm mt-1">{formData.brand || "—"}</p>
+                ) : (
                   <Input
                     id="brand"
                     value={formData.brand}
                     onChange={(e) => handleInput("brand", e.target.value)}
                     placeholder="e.g., L'Oréal"
                   />
-                </div>
-                <div>
-                  <Label htmlFor="category">Category</Label>
-                  <Select
-                    value={formData.category}
-                    onValueChange={(value) => handleInput("category", value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Shampoo">Shampoo</SelectItem>
-                      <SelectItem value="Conditioner">Conditioner</SelectItem>
-                      <SelectItem value="Hair Mask">Hair Mask</SelectItem>
-                      <SelectItem value="Hair Oil">Hair Oil</SelectItem>
-                      <SelectItem value="Styling">Styling</SelectItem>
-                      <SelectItem value="Treatment">Treatment</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="price">Price (€)</Label>
+                )}
+              </div>
+              <div>
+                <Label htmlFor="category">Category</Label>
+                {isReadOnly ? (
+                  <p className="text-sm mt-1">{formData.category || "—"}</p>
+                ) : (
+                  <div className="flex gap-2">
+                    <Select
+                      value={formData.category}
+                      onValueChange={(value) => handleInput("category", value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Shampoo">Shampoo</SelectItem>
+                        <SelectItem value="Conditioner">Conditioner</SelectItem>
+                        <SelectItem value="Hair Mask">Hair Mask</SelectItem>
+                        <SelectItem value="Hair Oil">Hair Oil</SelectItem>
+                        <SelectItem value="Styling">Styling</SelectItem>
+                        <SelectItem value="Treatment">Treatment</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Input
+                      type="text"
+                      placeholder="Add category here"
+                      value={
+                        formData.category &&
+                        ![
+                          "Shampoo",
+                          "Conditioner",
+                          "Hair Mask",
+                          "Hair Oil",
+                          "Styling",
+                          "Treatment",
+                        ].includes(formData.category)
+                          ? formData.category
+                          : ""
+                      }
+                      onChange={(e) => handleInput("category", e.target.value)}
+                      className="w-40"
+                    />
+                  </div>
+                )}
+              </div>
+              <div>
+                <Label htmlFor="price">Price (€)</Label>
+                {isReadOnly ? (
+                  <p className="text-sm mt-1">
+                    {formData.price && !isNaN(Number(formData.price))
+                      ? `€${Number(formData.price).toFixed(2)}`
+                      : formData.price && /^\d+(\.\d+)?/.test(formData.price)
+                      ? `€${parseFloat(formData.price).toFixed(2)}`
+                      : "—"}
+                  </p>
+                ) : (
                   <Input
                     id="price"
                     type="number"
                     step="0.01"
-                    value={formData.price?.amount ?? 0}
+                    value={
+                      formData.price && /^\d+(\.\d+)?/.test(formData.price)
+                        ? parseFloat(formData.price)
+                        : 0
+                    }
                     onChange={(e) =>
-                      handleInput("price", {
-                        ...formData.price,
-                        amount: Number.parseFloat(e.target.value) || 0,
-                      })
+                      handlePriceChange(Number.parseFloat(e.target.value) || 0)
                     }
                     placeholder="0.00"
                   />
-                </div>
-                <div>
-                  <Label htmlFor="volume">Volume (mL)</Label>
-                  <Input
-                    id="volume"
-                    type="number"
-                    value={formData.volume?.value ?? 0}
-                    onChange={(e) =>
-                      handleInput("volume", {
-                        ...formData.volume,
-                        value: Number.parseFloat(e.target.value) || 0,
-                        unit: "mL",
-                      })
-                    }
-                    placeholder="250"
-                  />
-                </div>
+                )}
               </div>
-            </TabsContent>
+              <div>
+                <Label htmlFor="volume">Volume (mL)</Label>
+                {isReadOnly ? (
+                  <p className="text-sm mt-1">{formData.volume || "—"}</p>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="volume"
+                      type="number"
+                      value={parseInt(formData.volume || "0", 10)}
+                      onChange={(e) =>
+                        handleVolumeChange(Number.parseInt(e.target.value) || 0)
+                      }
+                      placeholder="250"
+                      min={0}
+                    />
+                    <span className="text-sm text-muted-foreground">mL</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
 
-            <TabsContent value="details" className="space-y-4">
+          {/* Product Details */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
+              Product Details
+            </h3>
+            <div className="space-y-4">
               <div>
-                <Label htmlFor="shortDescription">Short Description</Label>
-                <Textarea
-                  id="shortDescription"
-                  value={formData.shortDescription}
-                  onChange={(e: unknown) =>
-                    handleInput(
-                      "shortDescription",
-                      (e as React.ChangeEvent<HTMLTextAreaElement>).target.value
-                    )
-                  }
-                  placeholder="Brief product description..."
-                  rows={2}
-                />
+                <div className="flex items-center justify-between mb-2">
+                  <Label htmlFor="shortDescription">Short Description</Label>
+                  {!isReadOnly && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => generateDescription("short")}
+                      disabled={isGenerating}
+                    >
+                      <Sparkles className="h-4 w-4 mr-1" />
+                      {isGenerating ? "Generating..." : "Generate"}
+                    </Button>
+                  )}
+                </div>
+                {isReadOnly ? (
+                  <p className="text-sm">
+                    {formData.shortDescription || "No description available"}
+                  </p>
+                ) : (
+                  <Textarea
+                    id="shortDescription"
+                    value={formData.shortDescription}
+                    onChange={(e) =>
+                      handleInput("shortDescription", e.target.value)
+                    }
+                    placeholder="Brief product description..."
+                    rows={2}
+                  />
+                )}
               </div>
               <div>
-                <Label htmlFor="description">Full Description</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e: unknown) =>
-                    handleInput(
-                      "description",
-                      (e as React.ChangeEvent<HTMLTextAreaElement>).target.value
-                    )
-                  }
-                  placeholder="Detailed product description, ingredients, benefits..."
-                  rows={4}
-                />
+                <div className="flex items-center justify-between mb-2">
+                  <Label htmlFor="description">Full Description</Label>
+                  {!isReadOnly && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => generateDescription("full")}
+                      disabled={isGenerating}
+                    >
+                      <FileText className="h-4 w-4 mr-1" />
+                      {isGenerating ? "Generating..." : "Generate"}
+                    </Button>
+                  )}
+                </div>
+                {isReadOnly ? (
+                  <p className="text-sm">
+                    {formData.description ||
+                      "No detailed description available"}
+                  </p>
+                ) : (
+                  <Textarea
+                    id="description"
+                    value={formData.description}
+                    onChange={(e) => handleInput("description", e.target.value)}
+                    placeholder="Detailed product description, ingredients, benefits..."
+                    rows={4}
+                  />
+                )}
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="barcode">Barcode</Label>
-                  <Input
-                    id="barcode"
-                    value={formData.barcode}
-                    onChange={(e) => handleInput("barcode", e.target.value)}
-                    placeholder="1234567890123"
-                  />
+                  {isReadOnly ? (
+                    <p className="text-sm mt-1 font-mono">
+                      {formData.barcode || "—"}
+                    </p>
+                  ) : (
+                    <Input
+                      id="barcode"
+                      value={formData.barcode}
+                      onChange={(e) => handleInput("barcode", e.target.value)}
+                      placeholder="1234567890123"
+                    />
+                  )}
                 </div>
                 <div>
                   <Label htmlFor="code">SKU/Code</Label>
-                  <Input
-                    id="code"
-                    value={formData.code}
-                    onChange={(e) => handleInput("code", e.target.value)}
-                    placeholder="SHP-001"
-                  />
+                  {isReadOnly ? (
+                    <p className="text-sm mt-1 font-mono">
+                      {formData.code || "—"}
+                    </p>
+                  ) : (
+                    <Input
+                      id="code"
+                      value={formData.code}
+                      onChange={(e) => handleInput("code", e.target.value)}
+                      placeholder="SHP-001"
+                    />
+                  )}
                 </div>
               </div>
               <div>
                 <Label htmlFor="imageUrl">Image URL</Label>
-                <Input
-                  id="imageUrl"
-                  value={formData.imageUrl}
-                  onChange={(e) => handleInput("imageUrl", e.target.value)}
-                  placeholder="https://example.com/product-image.jpg"
-                />
+                {isReadOnly ? (
+                  <p className="text-sm mt-1 break-all">
+                    {formData.imageUrl || "—"}
+                  </p>
+                ) : (
+                  <Input
+                    id="imageUrl"
+                    value={formData.imageUrl}
+                    onChange={(e) => handleInput("imageUrl", e.target.value)}
+                    placeholder="https://example.com/product-image.jpg"
+                  />
+                )}
               </div>
-            </TabsContent>
+            </div>
+          </div>
 
-            <TabsContent value="inventory" className="space-y-4">
+          {/* Inventory & Status */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
+              Inventory & Status
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="opacity-50 pointer-events-none select-none">
+                <Label htmlFor="stockQty" className="line-through">
+                  Stock Quantity
+                </Label>
+                {isReadOnly ? (
+                  <p
+                    className={`text-sm mt-1 font-medium line-through text-gray-400`}
+                  >
+                    {formData.stockQty} units
+                  </p>
+                ) : (
+                  <Input
+                    id="stockQty"
+                    type="number"
+                    value={formData.stockQty}
+                    onChange={(e) =>
+                      handleInput(
+                        "stockQty",
+                        Number.parseInt(e.target.value) || 0
+                      )
+                    }
+                    placeholder="0"
+                    disabled
+                    className="line-through"
+                  />
+                )}
+              </div>
               <div>
-                <Label htmlFor="stockQty">Stock Quantity</Label>
-                <Input
-                  id="stockQty"
-                  type="number"
-                  value={formData.stockQty}
-                  onChange={(e) =>
-                    handleInput(
-                      "stockQty",
-                      Number.parseInt(e.target.value) || 0
-                    )
-                  }
-                  placeholder="0"
-                />
+                <Label>Status</Label>
+                {isReadOnly ? (
+                  <div className="mt-1">
+                    <Badge
+                      variant={formData.isActive ? "default" : "secondary"}
+                    >
+                      {formData.isActive ? "Active" : "Inactive"}
+                    </Badge>
+                  </div>
+                ) : (
+                  <div className="flex items-center space-x-2 pt-2">
+                    <Checkbox
+                      id="isActive"
+                      checked={formData.isActive}
+                      onCheckedChange={(checked) =>
+                        handleInput("isActive", checked)
+                      }
+                    />
+                    <Label htmlFor="isActive">Product is active</Label>
+                  </div>
+                )}
               </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="isActive"
-                  checked={formData.isActive}
-                  onCheckedChange={(checked: unknown) =>
-                    handleInput("isActive", checked as boolean)
-                  }
-                />
-                <Label htmlFor="isActive">Product is active</Label>
+            </div>
+            {isReadOnly && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
+                <div>
+                  <Label className="text-sm font-medium">Created</Label>
+                  <p className="text-sm text-muted-foreground">
+                    {new Date(formData.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Updated</Label>
+                  <p className="text-sm text-muted-foreground">
+                    {new Date(formData.updatedAt).toLocaleDateString()}
+                  </p>
+                </div>
               </div>
-            </TabsContent>
-          </Tabs>
+            )}
+          </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="mt-6">
           <Button variant="outline" onClick={onClose}>
-            Cancel
+            {isReadOnly ? "Close" : "Cancel"}
           </Button>
-          <Button
-            onClick={saveProduct}
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            {modalType === "create" ? "Create Product" : "Update Product"}
-          </Button>
+          {!isReadOnly && (
+            <Button
+              onClick={saveProduct}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {modalType === "create" ? "Create Product" : "Update Product"}
+            </Button>
+          )}
+          {isReadOnly && (
+            <Button
+              onClick={() => {
+                onClose();
+                if (product) {
+                  setTimeout(() => openModal("update", product), 100);
+                }
+              }}
+            >
+              <Edit className="h-4 w-4 mr-2" />
+              Edit Product
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
