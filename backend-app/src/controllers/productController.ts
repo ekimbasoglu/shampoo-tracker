@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import productService from "../services/productService";
 import { IProduct } from "../models/productModel";
+import * as ioService from "../services/importExportService";
 
 // Create new product
 const createProduct = async (req: Request, res: Response): Promise<void> => {
@@ -8,7 +9,7 @@ const createProduct = async (req: Request, res: Response): Promise<void> => {
     res.status(400).json({ message: "Product data is required" });
     return;
   }
-  if (!req.body.barcode || !req.body.code || !req.body.name) {
+  if (!req.body.code || !req.body.name) {
     res
       .status(400)
       .json({ message: "Barcode, code, and name are required fields" });
@@ -142,10 +143,67 @@ const deleteProductById = async (
   }
 };
 
+const importProducts = async (req: Request, res: Response): Promise<void> => {
+  if (!req.body || !Array.isArray(req.body.products)) {
+    res.status(400).json({ message: "Products data is required" });
+    return;
+  }
+  try {
+    const importedProducts = await ioService.importProducts(req.body.products);
+    res.status(201).json({
+      message: "Products imported successfully",
+      products: importedProducts,
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      message: "Failed to import products",
+      error: error.message || error,
+    });
+  }
+};
+
+const exportProducts = async (req: Request, res: Response): Promise<void> => {
+  try {
+    let exportedProducts;
+    const exportType = req.query.exportType as string | undefined;
+
+    let productsToExport =
+      req.body &&
+      Array.isArray(req.body.products) &&
+      req.body.products.length > 0
+        ? req.body.products
+        : [];
+
+    if (exportType === "shopify") {
+      exportedProducts = await ioService.exportForShopify(productsToExport);
+    } else if (exportType === "excel") {
+      exportedProducts = await ioService.exportForExcelFormatted(
+        productsToExport
+      );
+    } else {
+      res.status(400).json({
+        message: "Invalid export type. Must be 'shopify' or 'excel'.",
+      });
+      return;
+    }
+    res.status(200).json({
+      message: "Products exported successfully",
+      products: exportedProducts,
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      message: "Failed to export products",
+      error: error.message || error,
+    });
+  }
+};
+
 export default {
   createProduct,
   getProducts,
   getProductById,
   updateProductById,
   deleteProductById,
+  importProducts,
+  exportProducts,
 };

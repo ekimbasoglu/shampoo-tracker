@@ -19,18 +19,11 @@ export interface IProduct extends Document {
   createdAt: Date;
   updatedAt: Date;
 }
-const priceSchema = new mongoose.Schema(
-  {
-    amount: { type: Number, required: true, min: 0 },
-    currency: { type: String, default: "EUR", maxlength: 3 },
-  },
-  { _id: false } // embedded sub-doc, no separate _id
-);
 
 const productSchema = new mongoose.Schema(
   {
     /* IDENTIFIERS */
-    barcode: { type: String, required: true, unique: true }, // UPC/EAN
+    barcode: { type: String, unique: true, sparse: true }, // UPC/EAN
     code: { type: String, required: true, index: true }, // your own SKU
 
     /* CORE INFO */

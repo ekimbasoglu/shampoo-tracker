@@ -1,6 +1,7 @@
 import { Router } from "express";
 import productController from "../controllers/productController";
 import authMiddleware from "../middleware/authMiddleware";
+import { csvUpload, csvToProducts } from "../middleware/csv.middleware";
 
 const router = Router();
 
@@ -352,4 +353,17 @@ router.put("/:id", authMiddleware, productController.updateProductById);
  */
 router.delete("/:id", authMiddleware, productController.deleteProductById);
 
+// Import/Export
+
+// Import products from CSV
+router.post(
+  "/import",
+  authMiddleware,
+  csvUpload, // <== first: grab the file
+  csvToProducts, // <== second: turn it into req.body.products
+  productController.importProducts
+);
+
+// Export as CSV (no change on input)
+router.post("/export", authMiddleware, productController.exportProducts);
 export default router;
