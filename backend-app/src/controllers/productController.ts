@@ -162,38 +162,38 @@ const importProducts = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-const exportProducts = async (req: Request, res: Response): Promise<void> => {
+export const exportProducts = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
-    let exportedProducts;
-    const exportType = req.query.exportType as string | undefined;
+    const format = (req.body?.format as string | undefined) ?? "shopify"; // default
+    const list = Array.isArray(req.body?.products) ? req.body.products : []; // or []
+    let csv: string;
 
-    let productsToExport =
-      req.body &&
-      Array.isArray(req.body.products) &&
-      req.body.products.length > 0
-        ? req.body.products
-        : [];
-
-    if (exportType === "shopify") {
-      exportedProducts = await ioService.exportForShopify(productsToExport);
-    } else if (exportType === "excel") {
-      exportedProducts = await ioService.exportForExcelFormatted(
-        productsToExport
-      );
-    } else {
-      res.status(400).json({
-        message: "Invalid export type. Must be 'shopify' or 'excel'.",
-      });
-      return;
+    switch (format) {
+      case "shopify":
+        csv = await ioService.exportForShopify(list);
+        break;
+      case "excel":
+        csv = await ioService.exportForExcelFormatted(list);
+        break;
+      default:
+        res.status(400).json({
+          message: "Invalid export type. Must be 'shopify' or 'excel'.",
+        });
+        return;
     }
-    res.status(200).json({
-      message: "Products exported successfully",
-      products: exportedProducts,
-    });
-  } catch (error: any) {
+
+    /* ---------- return the CSV, not JSON ---------------- */
+    const filename = `products-${format}-${Date.now()}.csv`;
+    res.setHeader("Content-Type", "text/csv; charset=utf-8");
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+    res.status(200).send(csv);
+  } catch (err: any) {
     res.status(500).json({
       message: "Failed to export products",
-      error: error.message || error,
+      error: err.message ?? err,
     });
   }
 };

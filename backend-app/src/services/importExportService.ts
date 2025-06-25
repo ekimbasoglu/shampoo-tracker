@@ -107,19 +107,22 @@ export const exportForShopify = async (
   products: IProduct[]
 ): Promise<string> => {
   // If products is empty, fetch all products from the database
-  let items = products;
-  if (!items || items.length === 0) {
+  let items: IProduct[];
+  if (products && products.length > 0) {
+    const ids = products.map((p: any) => (typeof p === "string" ? p : p._id));
+    items = await Product.find({ _id: { $in: ids } }).lean();
+  } else {
     items = await Product.find({}).lean();
   }
 
-  const rows: ShopifyRow[] = items.map((p) => ({
+  const rows = items.map((p) => ({
     Handle: (p.code ?? "").toLowerCase(),
     Title: p.name,
     Body: p.description ?? "",
     Vendor: p.brand ?? "",
-    VariantSKU: p.code,
-    VariantInventoryQty: p.stockQty ?? 0,
-    VariantPrice: p.price ?? "",
+    "Variant SKU": p.code,
+    "Variant Inventory Qty": p.stockQty ?? 0,
+    "Variant Price": p.price ?? "",
     Tags: (p.tags ?? []).join(", "),
   }));
 
@@ -139,33 +142,56 @@ export const exportForShopify = async (
 /* 3. EXPORT → “Excel friendly” CSV (tab-separated)                   */
 /* ------------------------------------------------------------------ */
 
-// Same idea, but tab-separated so Excel opens it without a locale prompt
 export const exportForExcelFormatted = async (
   products: IProduct[]
 ): Promise<string> => {
-  // If products is empty, fetch all products from the database
-  let items = products;
-  if (!items || items.length === 0) {
+  // if caller didn’t pass any rows → dump everything
+  let items: IProduct[];
+  if (products && products.length) {
+    const ids = products.map((p) => (typeof p === "string" ? p : p._id));
+    items = await Product.find({ _id: { $in: ids } }).lean();
+  } else {
     items = await Product.find({}).lean();
   }
 
-  const cols = [
-    "code",
-    "name",
-    "brand",
-    "category",
-    "price",
-    "volume",
-    "stockQty",
-    "isActive",
-  ] as const;
+  /** column order EXACTLY like her spreadsheet */
+  const header = [
+    "", // dummy leading column
+    "Barcode",
+    "CODE",
+    "PRODUCT NAME",
+    "PRICE",
+    "PRODUCT CATEGORY",
+    "IMAGE URL",
+    "mL",
+  ];
 
-  const header = cols.join("\t");
-  const body = items
-    .map((p) => cols.map((c) => p[c] ?? "").join("\t"))
-    .join("\n");
+  /** turn each product into a row (keep empty strings for blanks) */
+  const dataRows = items.map((p) => [
+    "", // dummy leading column
+    p.barcode ?? "",
+    p.code ?? "",
+    p.name ?? "",
+    p.price ?? "",
+    p.category ?? "",
+    p.imageUrl ?? "",
+    p.volume ?? "",
+  ]);
 
-  return `${header}\n${body}`;
+  /* ----- build a CSV string --------------------------------------- */
+  // Excel opens comma-separated just fine for most locales; if your
+  // Excel expects semicolons, change `","` below to `";"`.
+  const escape = (val: unknown) =>
+    typeof val === "string" && val.includes(",")
+      ? `"${val.replace(/"/g, '""')}"`
+      : `${val}`;
+
+  const lines = [
+    header.map(escape).join(","), // header row
+    ...dataRows.map((r) => r.map(escape).join(",")),
+  ];
+
+  return lines.join("\n"); // ready to send as text/csv
 };
 
 export default {

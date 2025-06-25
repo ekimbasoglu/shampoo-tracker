@@ -26,17 +26,20 @@ type Format = "shopify" | "excel";
 
 export async function exportCSV(
   scope: Scope,
-  ids: string[],
+  products: string[],
   format: Format
 ): Promise<void> {
-  const res = await fetch("/api/products/export/csv", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${localStorage.getItem("token")!}`,
-    },
-    body: JSON.stringify({ scope, ids, format }),
-  });
+  const res = await fetch(
+    `${import.meta.env.VITE_APP_BACKEND_URI}/api/products/export/`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")!}`,
+      },
+      body: JSON.stringify({ scope, products, format }),
+    }
+  );
   if (!res.ok) throw new Error(await res.text());
 
   const blob = await res.blob();

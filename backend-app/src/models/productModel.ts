@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 
 export interface IProduct extends Document {
+  _id: any;
   barcode: string;
   code: string;
   name: string;
