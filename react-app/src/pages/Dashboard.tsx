@@ -346,7 +346,27 @@ const ProductDashboard: React.FC = () => {
                     <TableCell className="text-sm">{p.brand || "—"}</TableCell>
                     <TableCell>
                       {p.category ? (
-                        <Badge variant="secondary" className="text-xs">
+                        <Badge
+                          variant="secondary"
+                          className="text-xs"
+                          style={{
+                            backgroundColor:
+                              p.category === "Shampoo"
+                                ? "#FDEE9B"
+                                : p.category === "Conditioner"
+                                ? "#A5D8FF"
+                                : p.category === "Treatment"
+                                ? "#FEB2B2"
+                                : p.category === "Leave in treatment"
+                                ? "#D6BCFA"
+                                : p.category === "Styling"
+                                ? "#BEF5CB"
+                                : p.category === "Scalp treatment"
+                                ? "#FFD8A8"
+                                : undefined,
+                            color: "#222",
+                          }}
+                        >
                           {p.category}
                         </Badge>
                       ) : (
