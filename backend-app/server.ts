@@ -4,9 +4,8 @@ import dotenv from "dotenv";
 // Load environment variables from .env file
 dotenv.config();
 
-const PORT = Number(process.env.PORT);
-if (!PORT) throw new Error("PORT env var missing!");
+const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, "10000", () => {
-  console.log(`API listening on ${PORT}`);
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
 });
