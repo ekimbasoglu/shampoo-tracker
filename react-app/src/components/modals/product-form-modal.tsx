@@ -142,6 +142,20 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
     }`;
     const method = type === "create" ? "POST" : "PUT";
 
+    if (type === "create") {
+      const missingFields = [];
+      if (!formData.name.trim()) missingFields.push("Product name");
+      if (!formData.code.trim()) missingFields.push("Product code");
+      if (missingFields.length > 0) {
+        alert(
+          `Please fill in the following required field(s): ${missingFields.join(
+            ", "
+          )}.`
+        );
+        return;
+      }
+    }
+
     try {
       const res = await fetch(url, {
         method,
@@ -154,6 +168,9 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
 
       if (res.ok) {
         onSuccess();
+      }
+      if (!res.ok) {
+        alert(`Product with this barcode or code already exists.`);
       }
     } catch (err) {
       console.error("Error saving product", err);

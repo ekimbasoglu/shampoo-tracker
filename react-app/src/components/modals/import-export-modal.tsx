@@ -46,7 +46,7 @@ export const ImportExportModal: React.FC<Props> = ({
       await importCSV(e.target.files[0]);
       onImported?.();
 
-      onClose(); // success – just close or show toast
+      onClose();
     } catch (err) {
       console.error("Import failed:", err);
     } finally {

@@ -70,6 +70,11 @@ const deleteProductById = async (id: string): Promise<boolean> => {
   return result !== null;
 };
 
+const deleteAllProducts = async (): Promise<boolean> => {
+  const result = await Product.deleteMany({});
+  return result.deletedCount > 0;
+};
+
 export default {
   createProduct,
   getProductByBarcodeOrCode,
@@ -77,4 +82,5 @@ export default {
   getProductById,
   updateProductById,
   deleteProductById,
+  deleteAllProducts,
 };

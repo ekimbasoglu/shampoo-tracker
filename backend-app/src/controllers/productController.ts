@@ -198,6 +198,23 @@ export const exportProducts = async (
   }
 };
 
+export const deleteAllProducts = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    await productService.deleteAllProducts();
+    res.status(200).json({
+      message: "All products deleted successfully",
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      message: "Failed to delete all products",
+      error: error.message || error,
+    });
+  }
+};
+
 export default {
   createProduct,
   getProducts,
@@ -206,4 +223,5 @@ export default {
   deleteProductById,
   importProducts,
   exportProducts,
+  deleteAllProducts,
 };

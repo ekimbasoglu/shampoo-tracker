@@ -19,6 +19,8 @@ export async function importCSV(file: File): Promise<void> {
     const { message = "Import failed" } = await res.json().catch(() => ({}));
     throw new Error(message);
   }
+  // Refresh the page
+  window.location.reload();
 }
 
 type Scope = "all" | "selected";

@@ -10,12 +10,10 @@ import {
   Package,
   Droplets,
   Tag,
-  DollarSign,
-  MoreHorizontal,
   Edit,
   Trash2,
-  Eye,
   ShoppingCart,
+  Settings,
 } from "lucide-react";
 import { Image } from "@unpic/react";
 
@@ -45,18 +43,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 // ** 💡 new, fully‑separated modal components **
 import { ProductViewModal } from "../components/modals/product-view-modal";
 import { ProductFormModal } from "../components/modals/product-form-modal";
 import { ProductDeleteModal } from "../components/modals/product-delete-modal";
 import { ImportExportModal } from "../components/modals/import-export-modal";
+import { SettingsModal } from "../components/modals/settings-modal";
 
 import type { Product } from "../types";
 
@@ -74,7 +67,7 @@ const ProductDashboard: React.FC = () => {
   const [importExportModalOpen, setImportExportModalOpen] = useState(false);
   const [formMode, setFormMode] = useState<"create" | "update">("create");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-
+  const [settingsModalOpen, setSettingsModalOpen] = useState(false);
   // list helpers
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
@@ -141,11 +134,15 @@ const ProductDashboard: React.FC = () => {
     setSelectedProduct(p);
     requestAnimationFrame(() => setDeleteModalOpen(true));
   }
+  function openSettingsModal() {
+    requestAnimationFrame(() => setSettingsModalOpen(true));
+  }
   function closeAll() {
     setViewModalOpen(false);
     setFormModalOpen(false);
     setDeleteModalOpen(false);
     setImportExportModalOpen(false);
+    setSettingsModalOpen(false);
     setSelectedProduct(null);
   }
 
@@ -210,6 +207,9 @@ const ProductDashboard: React.FC = () => {
               variant="outline"
             >
               <Upload className="h-4 w-4 mr-2" /> Import/Export
+            </Button>
+            <Button onClick={() => openSettingsModal()} variant="outline">
+              <Settings className="h-4 w-4 mr-2" /> Settings
             </Button>
             <Button onClick={handleLogout} variant="outline">
               <LogOut className="h-4 w-4 mr-2" /> Logout
@@ -432,6 +432,11 @@ const ProductDashboard: React.FC = () => {
         isOpen={importExportModalOpen}
         selectedProducts={selectedIds}
         onClose={() => setImportExportModalOpen(false)}
+      />
+
+      <SettingsModal
+        isOpen={settingsModalOpen}
+        onClose={() => setSettingsModalOpen(false)}
       />
     </div>
   );

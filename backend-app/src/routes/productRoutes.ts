@@ -366,4 +366,6 @@ router.post(
 
 // Export as CSV (no change on input)
 router.post("/export", authMiddleware, productController.exportProducts);
+
+router.post("/delete-all", authMiddleware, productController.deleteAllProducts);
 export default router;
