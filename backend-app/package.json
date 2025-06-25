@@ -36,7 +36,6 @@
   },
   "scripts": {
     "start": "node dist/server.js",
-    "seed": "ts-node src/config/seed.ts",
     "drop": "ts-node src/config/dropdb.ts",
     "dev": "nodemon server.ts",
     "build": "tsc",
