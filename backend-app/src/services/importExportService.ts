@@ -19,6 +19,13 @@ const productSchema = z.object({
   isActive: z.boolean().optional(),
 });
 
+/**
+ * Takes the rows produced by csv-middleware and upserts them.
+ * – drops completely empty values
+ * – coerces numeric fields
+ * – removes duplicates (last one wins)
+ * – runs bulkWrite unordered so the whole CSV doesn’t abort on one bad row
+ */
 export const importProducts = async (
   data: Partial<IProduct>[]
 ): Promise<IProduct[]> => {
@@ -30,11 +37,11 @@ export const importProducts = async (
     const parsed = productSchema.safeParse(row);
     if (parsed.success) {
       // Convert attributes from Record<string, string> to Map<string, string> if present
-      const fixedData = { ...parsed.data } as Partial<IProduct>;
-      if (fixedData.attributes && !(fixedData.attributes instanceof Map)) {
-        fixedData.attributes = new Map(Object.entries(fixedData.attributes));
+      const data = { ...parsed.data } as Partial<IProduct>;
+      if (data.attributes && !(data.attributes instanceof Map)) {
+        data.attributes = new Map(Object.entries(data.attributes));
       }
-      validated.push(fixedData);
+      validated.push(data);
     } else {
       console.warn(`row ${i + 1} skipped:`, parsed.error.flatten().fieldErrors);
     }
