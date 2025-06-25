@@ -7,6 +7,6 @@ dotenv.config();
 const PORT = Number(process.env.PORT);
 if (!PORT) throw new Error("PORT env var missing!");
 
-app.listen(PORT, "0.0.0.0", () => {
+app.listen(PORT, "10000", () => {
   console.log(`API listening on ${PORT}`);
 });
