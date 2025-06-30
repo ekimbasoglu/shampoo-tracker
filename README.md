@@ -1,4 +1,4 @@
-# Full‑Stack Content Platform · React + Node/Express
+# beauty product tracker[node/react]
 
 ![Hero GIF](https://media.giphy.com/media/Mw0DWqUEYbNs1aKwxH/giphy.gif)
 
