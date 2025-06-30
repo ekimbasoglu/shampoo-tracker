@@ -1,6 +1,6 @@
 # Full‑Stack Content Platform · React + Node/Express
 
-![Hero GIF](https://media.giphy.com/media/8HXBCxfowMjt93G58s/giphy.gif)
+![Hero GIF](https://media.giphy.com/media/Mw0DWqUEYbNs1aKwxH/giphy.gif)
 
 > A modern full‑stack starter that lets you **create, manage & rate** games, videos, artwork and music. Built with a clean architecture, typed REST API and exhaustive tests so you can focus on what matters—shipping features.
 
