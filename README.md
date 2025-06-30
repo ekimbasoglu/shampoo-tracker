@@ -2,7 +2,7 @@
 
 ![Hero GIF](https://media.giphy.com/media/Mw0DWqUEYbNs1aKwxH/giphy.gif)
 
-> A modern full‑stack starter that lets you **create, manage & rate** games, videos, artwork and music. Built with a clean architecture, typed REST API and exhaustive tests so you can focus on what matters—shipping features.
+> Beauty-product tracker with bulk import, full CRUD, and one-click Shopify-ready export.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E=18.0-green.svg)](https://nodejs.org/)
