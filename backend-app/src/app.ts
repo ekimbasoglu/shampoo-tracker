@@ -18,13 +18,7 @@ const app: Application = express();
 setupSwagger(app);
 
 // Enable CORS for all routes
-app.use(
-  cors({
-    origin: "https://shampoo-tracker-react.onrender.com", // exact origin
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    credentials: true, // if you set cookies / auth header
-  })
-);
+app.use(cors());
 
 // Middleware
 app.use(morgan("dev"));
