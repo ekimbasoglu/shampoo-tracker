@@ -37,7 +37,7 @@ export const importProducts = async (
     const parsed = productSchema.safeParse(row);
     if (parsed.success) {
       // Convert attributes from Record<string, string> to Map<string, string> if present
-      const data = { ...parsed.data } as Partial<IProduct>;
+      const data = { ...parsed.data } as unknown as Partial<IProduct>;
       if (data.attributes && !(data.attributes instanceof Map)) {
         data.attributes = new Map(Object.entries(data.attributes));
       }
