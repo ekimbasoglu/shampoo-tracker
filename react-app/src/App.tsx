@@ -25,7 +25,7 @@ const App: React.FC = () => {
         />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        {/* <Route path="/register" element={<Register />} /> */}
         {/* Redirect any other route to login */}
         <Route
           path="*"

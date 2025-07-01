@@ -103,6 +103,6 @@ router.post("/login", authController.login);
  *                   type: string
  *                   example: "Invalid input data"
  */
-router.post("/signup", authController.signup);
+// router.post("/signup", authController.signup);
 
 export default router;

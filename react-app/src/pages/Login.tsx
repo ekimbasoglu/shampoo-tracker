@@ -76,7 +76,7 @@ const Login: React.FC = () => {
             Login
           </button>
         </form>
-        <p className="text-gray-600 text-sm mt-4">
+        {/* <p className="text-gray-600 text-sm mt-4">
           Don't have an account?{" "}
           <span
             className="text-indigo-500 cursor-pointer hover:underline"
@@ -85,7 +85,7 @@ const Login: React.FC = () => {
             Click here to create a new account
           </span>
           .
-        </p>
+        </p> */}
       </div>
     </div>
   );
