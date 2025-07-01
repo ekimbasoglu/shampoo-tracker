@@ -1,114 +1,202 @@
+# beauty product tracker[node/react]
 
-# React and Node/Express Boilerplate
+![Hero GIF](https://media.giphy.com/media/Mw0DWqUEYbNs1aKwxH/giphy.gif)
 
-    
-![react](https://media.giphy.com/media/8HXBCxfowMjt93G58s/giphy.gif)
+> Beauty-product tracker with bulk import, full CRUD, and one-click Shopify-ready export.
 
-## Overview
-
-A full-stack app that allows users to create, manage, and rate various types of content, such as games, videos, artwork, and music. The platform supports user authentication, content management, and a rating system, providing a complete CRUD (Create, Read, Update, Delete) functionality with secure access and user interactions.
-
-## Project Setup
-
-This project consists of two main parts: a backend built with Node.js and Express, and a frontend built with React.
-
-### Backend
-
-- **Node.js**: The backend is built using Node.js and Express. The project is set up with the necessary dependencies and follows a standard MVC structure.
-- **Database**: A NoSQL database (MongoDB) is used for storing user and content data.
-- **Swagger**: API documentation is provided using Swagger.
-
-### Frontend
-
-- **React**: The frontend is built using React. It is a single-page application that interacts with the backend API to display and manage content.
-- **Tailwind CSS**: The application uses Tailwind CSS for styling, providing utility-first CSS classes that allow rapid and flexible design development. Tailwind CSS helps in building a responsive and modern UI with minimal custom CSS.
-
-## API Endpoints
-
-![image](https://github.com/user-attachments/assets/a5689ead-0c2f-46ab-946a-62f0b4e607f8)
-
-## Running Tests
-
-To run the tests, use the following command:
-
-```bash
-cd backend-app && npm run drop && npm test
-```
-
-## Documentation
-
-API documentation is provided using Swagger. To view the documentation, run the project and navigate to `backend-url/api-docs`.
-
-## Running the Project
-
-To run the project locally:
-
-1. **Clone the repository**:
-    ```bash
-    git clone github.com/ekimbasoglu/back-end-developer-task
-    ```
-
-2. **Install dependencies**:
-
-    - Backend:
-        ```bash
-        cd backend-app && npm install
-        ```
-
-    - Frontend:
-        ```bash
-        cd react-app && npm install
-        ```
-
-3. **Setting Up Environment Variables**:
-
-    - Backend:
-        ```bash
-        cd backend-app && nano .env
-        PORT=3000
-        NODE_ENV=development
-        MONGO_URI=your_mongo_uri_here
-        JWT_SECRET=secret
-
-        ```
-
-    - Frontend:
-        ```bash
-        cd react-app && nano .env
-        VITE_APP_BACKEND_URI=http://localhost:3000
-        ```
-        
-4. **Run the project**:
-
-    - Backend:
-        ```bash
-        cd backend-app && npm run dev
-        ```
-
-    - Frontend:
-        ```bash
-        cd react-app && npm run dev
-        ```
-
-5. **Docker**:
-
-    If using Docker, build and run the project with:
-
-    ```bash
-      docker build -t app .
-      docker run -p 3000:3000 app
-    ```
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Node](https://img.shields.io/badge/node-%3E=18.0-green.svg)](https://nodejs.org/)
+[![React](https://img.shields.io/badge/react-18-blue.svg)](https://react.dev/)
+[![MongoDB](https://img.shields.io/badge/database-MongoDB-green.svg)](https://mongodb.com/)
 
 ---
 
-### Dropping the Database
+## Table of Contents
 
-      cd backend-app && npm run drop
-    
-### Seeding the Database
+- [Demo](#demo)
+- [Features](#-features)
+- [Tech Stack](#-tech-stack)
+- [Architecture](#-project-structure)
+- [Getting Started](#-getting-started)
+- [API Reference](#-api-reference)
+- [Useful Scripts](#-useful-scripts)
+- [Contributing](#-contributing)
+- [License](#-license)
+- [Contact](#-contact)
 
-      cd backend-app && npm run seed
+---
 
+## Demo
 
-### [contact](mailto:ekimbasoglu@hotmail.com)
+A live deployment is available on **Vercel** (frontend) and **Render** (backend)  
+👉 ~<https://content-platform.vercel.app>~
 
+---
+
+## ✨ Features
+
+- **Full CRUD** for content items with granular permissions  
+- JWT‑based **authentication & authorization** (access + refresh tokens)  
+- **MongoDB** persistence via Mongoose ODM  
+- **React 18 + Vite** SPA with React Router & Context API  
+- **Tailwind CSS** design system with dark‑mode switcher  
+- **Swagger UI** auto‑generated API docs  
+- **Jest & Supertest** integration tests and React Testing Library UI tests  
+- One‑command **Docker** deployment (dev & prod)  
+- Pre‑configured **ESLint**, **Prettier** and **Husky** git hooks  
+
+---
+
+## 🛠 Tech Stack
+
+| Layer      | Tech                                                     |
+|------------|----------------------------------------------------------|
+| Frontend   | React 18, Vite, Tailwind CSS, Axios                      |
+| Backend    | Node 18, Express 5, Mongoose 7                           |
+| Database   | MongoDB Atlas / Local Mongo                              |
+| Tooling    | ESLint / Prettier, Husky, Jest, Supertest, React Testing Library |
+| DevOps     | Docker, Docker Compose, GitHub Actions CI                |
+
+---
+
+## 📂 Project Structure
+
+```text
+.
+├── backend-app
+│   ├── src
+│   │   ├── controllers
+│   │   ├── models
+│   │   ├── routes
+│   │   └── utils
+│   └── tests
+└── react-app
+    ├── src
+    │   ├── components
+    │   ├── hooks
+    │   ├── pages
+    │   └── services
+    └── tests
+```
+
+---
+
+## 🚀 Getting Started
+
+### 1 · Clone repo
+
+```bash
+git clone [https://github.com/ekimbasoglu/shampoo-tracker.git
+cd shampoo-tracker
+```
+
+### 2 · Install dependencies
+
+```bash
+# backend
+cd backend-app && npm ci
+
+# frontend
+cd ../react-app && npm ci
+```
+
+### 3 · Configure environment variables
+
+Create the following `.env` files (examples are included):
+
+```bash
+# backend-app/.env
+PORT=3000
+NODE_ENV=development
+MONGO_URI=mongodb://localhost:27017/contentplatform
+JWT_SECRET=supersecret
+```
+
+```bash
+# react-app/.env
+VITE_BACKEND_URI=http://localhost:3000
+```
+
+### 4 · Run in development mode
+
+```bash
+# In one terminal
+cd backend-app && npm run dev
+
+# In another terminal
+cd react-app && npm run dev
+```
+
+The frontend will be served at <http://localhost:5173> and will proxy API calls to the backend on port 3000.
+
+---
+
+~## 🧪 Running Tests~ In Progress
+
+```bash
+~# Drop + seed test DB then run suites~
+~cd backend-app && npm run drop && npm test~
+```
+
+~Frontend unit/integration tests:~
+
+```bash
+~cd react-app && npm test~
+```
+
+---
+
+## 📝 API Reference
+
+Start the backend and open **/api-docs** to explore interactive Swagger UI.
+
+![Swagger screenshot](./docs/swagger.png)
+
+---
+
+## 📦 Useful Scripts
+
+| Command                       | Description                           |
+|-------------------------------|---------------------------------------|
+| `npm run dev`                 | Start dev server with nodemon         |
+| `npm run build`               | Compile production build              |
+| `npm run lint`                | Lint & fix source                     |
+| `npm run format`              | Prettier formatting                   |
+| `npm test`                    | Run tests                             |
+| `npm run seed`                | Seed Mongo with sample data           |
+| `npm run drop`                | Drop Mongo database                   |
+
+---
+
+## 🗺️ Roadmap
+
+- [ ] Admin dashboard & analytics  
+- [ ] GraphQL gateway
+
+---
+
+## 🤝 Contributing
+
+1. Fork the project  
+2. Create your feature branch (`git checkout -b feat/amazing`)  
+3. Commit your changes (`git commit -m 'feat: add amazing feature'`)  
+4. Push to the branch (`git push origin feat/amazing`)  
+5. Open a Pull Request  
+
+---
+
+## 📄 License
+
+Distributed under the **MIT** License. See [`LICENSE`](LICENSE) for details.
+
+---
+
+## 📬 Contact
+
+Ekim Basoglu – <ekimbasoglu@hotmail.com>  
+
+Project Link: <https://github.com/ekimbasoglu/shampoo-tracker>
+
+---
+
+*Built with ♥ in 2025.*
