@@ -1,0 +1,9 @@
+name = "shampoo-tracker"
+main = "src/worker/index.ts"
+compatibility_date = "2025-08-08"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "shampoo-tracker-db"
+database_id = "d184c85e-60a4-4bbc-b9a6-d09d30be8508"
+
