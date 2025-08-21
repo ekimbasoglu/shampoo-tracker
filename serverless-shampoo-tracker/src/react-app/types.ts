@@ -1,9 +1,8 @@
 export interface Product {
-  _id: string;
+  id: string;
   barcode: string;
   code: string;
   name: string;
-  shortDescription?: string;
   description?: string;
   brand?: string;
   category?: string;

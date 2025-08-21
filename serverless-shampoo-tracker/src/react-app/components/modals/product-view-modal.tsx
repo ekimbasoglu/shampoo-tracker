@@ -113,12 +113,6 @@ export const ProductViewModal: React.FC<ProductViewModalProps> = ({
             </h3>
             <div className="space-y-4">
               <div>
-                <Label className="text-sm font-medium">Short Description</Label>
-                <p className="text-sm mt-1">
-                  {product.shortDescription || "No description available"}
-                </p>
-              </div>
-              <div>
                 <Label className="text-sm font-medium">Full Description</Label>
                 <p className="text-sm mt-1">
                   {product.description || "No detailed description available"}
@@ -215,11 +209,13 @@ export const ProductViewModal: React.FC<ProductViewModalProps> = ({
                 Tags
               </h3>
               <div className="flex flex-wrap gap-2">
-                {product.tags.map((tag, index) => (
-                  <Badge key={index} variant="outline" className="text-xs">
-                    {tag}
-                  </Badge>
-                ))}
+                {(Array.isArray(product.tags) ? product.tags : [])?.map(
+                  (tag, index) => (
+                    <Badge key={index} variant="outline" className="text-xs">
+                      {tag}
+                    </Badge>
+                  )
+                )}
               </div>
             </div>
           )}

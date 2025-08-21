@@ -12,26 +12,25 @@ export async function createUser(DB: D1Database, user: User) {
 export async function createProduct(DB: D1Database, product: Product) {
   const stmt = DB.prepare(`
     INSERT INTO products
-    (barcode, code, name, short_description, description, brand, category, price, volume, image_url, tags, attributes, ai_description, stock_qty, is_active)
+    (barcode, code, name, description, brand, category, price, volume, image_url, tags, attributes, stock_qty, is_active)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
-  return await stmt.bind(
-    product.barcode ?? null,
-    product.code,
-    product.name,
-    product.short_description ?? null,
-    product.description ?? null,
-    product.brand ?? null,
-    product.category ?? null,
-    product.price ?? null,
-    product.volume,
-    product.image_url ?? null,
-    product.tags ? JSON.stringify(product.tags) : null,
-    product.attributes ? JSON.stringify(product.attributes) : null,
-    product.ai_description ?? null,
-    product.stock_qty,
-    product.is_active
-  ).run();
+  return await stmt
+    .bind(
+      product.barcode ?? null,
+      product.code,
+      product.name,
+      product.description ?? null,
+      product.brand ?? null,
+      product.category ?? null,
+      product.price ?? null,
+      product.volume,
+      product.image_url ?? null,
+      product.tags ? JSON.stringify(product.tags) : null,
+      product.attributes ? JSON.stringify(product.attributes) : null,
+      product.stock_qty,
+      product.is_active
+    )
+    .run();
 }
-

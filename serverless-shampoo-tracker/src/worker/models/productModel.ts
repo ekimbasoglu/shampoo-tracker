@@ -3,7 +3,6 @@ export interface Product {
   barcode?: string;
   code: string;
   name: string;
-  short_description?: string;
   description?: string;
   brand?: string;
   category?: string;
@@ -12,10 +11,8 @@ export interface Product {
   image_url?: string;
   tags?: string[]; // stored as JSON in D1
   attributes?: Record<string, string>; // stored as JSON
-  ai_description?: string;
   stock_qty: number;
   is_active: boolean;
   created_at?: string;
   updated_at?: string;
 }
-

@@ -64,11 +64,12 @@ const getProductById = async (c: Context) => {
 };
 
 const updateProductById = async (c: Context) => {
-  const productId = c.req.param("id");
   const body = await c.req.json();
-  if (!productId || !body)
+
+  if (!body)
     return c.json({ message: "Product ID and data are required" }, 400);
   try {
+    const productId = body.id;
     const updatedProduct = await productService.updateProductById(
       c.env.DB,
       productId,
@@ -110,6 +111,7 @@ const deleteProductById = async (c: Context) => {
 
 const importProducts = async (c: Context) => {
   const products = c.get("products");
+
   if (!products) return c.json({ message: "Products data is required" }, 400);
   try {
     const importedProducts = await ioService.importProducts(c.env.DB, products);

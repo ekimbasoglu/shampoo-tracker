@@ -96,7 +96,7 @@ const ProductDashboard: React.FC = () => {
 
   async function deleteProduct(p: Product) {
     try {
-      const res = await fetch(`/api/products/${p._id}`, {
+      const res = await fetch(`/api/products/${p.id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
@@ -154,7 +154,7 @@ const ProductDashboard: React.FC = () => {
       setSelectedIds(new Set());
       setSelectAll(false);
     } else {
-      setSelectedIds(new Set(filtered.map((p) => p._id)));
+      setSelectedIds(new Set(filtered.map((p) => p.id)));
       setSelectAll(true);
     }
   }
@@ -298,7 +298,7 @@ const ProductDashboard: React.FC = () => {
               <TableBody>
                 {filtered.map((p) => (
                   <TableRow
-                    key={p._id}
+                    key={p.id}
                     className="hover:bg-muted/50 cursor-pointer"
                     onClick={(e) => {
                       // Prevent row click if clicking on a button or checkbox
@@ -315,8 +315,8 @@ const ProductDashboard: React.FC = () => {
                   >
                     <TableCell>
                       <Checkbox
-                        checked={selectedIds.has(p._id)}
-                        onCheckedChange={() => toggleSelect(p._id)}
+                        checked={selectedIds.has(p.id)}
+                        onCheckedChange={() => toggleSelect(p.id)}
                       />
                     </TableCell>
                     <TableCell>
@@ -330,11 +330,6 @@ const ProductDashboard: React.FC = () => {
                     <TableCell>
                       <div className="space-y-1">
                         <div className="font-medium text-sm">{p.name}</div>
-                        {p.shortDescription && (
-                          <div className="text-xs text-muted-foreground line-clamp-2">
-                            {p.shortDescription}
-                          </div>
-                        )}
                       </div>
                     </TableCell>
                     <TableCell className="text-sm">{p.brand || "—"}</TableCell>

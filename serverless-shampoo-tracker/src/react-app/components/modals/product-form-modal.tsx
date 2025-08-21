@@ -2,7 +2,7 @@
 
 import type React from "react";
 import { useState, useEffect } from "react";
-import { Droplets, Sparkles, FileText } from "lucide-react";
+import { Droplets, FileText } from "lucide-react";
 
 import {
   Dialog,
@@ -42,11 +42,10 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
   onSuccess,
 }) => {
   const [formData, setFormData] = useState<Product>({
-    _id: "temp",
+    id: "temp",
     barcode: "",
     code: "",
     name: "",
-    shortDescription: "",
     description: "",
     brand: "",
     category: "",
@@ -69,11 +68,10 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
       setFormData(product);
     } else if (type === "create") {
       setFormData({
-        _id: "temp",
+        id: "temp",
         barcode: "",
         code: "",
         name: "",
-        shortDescription: "",
         description: "",
         brand: "",
         category: "",
@@ -108,7 +106,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
     }));
   };
 
-  const generateDescription = async (descType: "short" | "full") => {
+  const generateDescription = async (descType: "full") => {
     if (!formData.name) {
       alert("Please enter a product name first");
       return;
@@ -119,16 +117,9 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
       // Simulate AI generation - replace with actual API call
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
-      const generated =
-        descType === "short"
-          ? `Premium ${formData.name} for all hair types. Gentle formula with natural ingredients.`
-          : `Experience the luxury of ${formData.name}, specially formulated for modern hair care needs. This premium product combines advanced technology with natural ingredients to deliver exceptional results. Suitable for all hair types, it provides deep nourishment while maintaining the natural balance of your hair. Perfect for daily use, this product will transform your hair care routine and leave your hair looking healthy, shiny, and beautiful.`;
+      const generated = `Experience the luxury of ${formData.name}, specially formulated for modern hair care needs. This premium product combines advanced technology with natural ingredients to deliver exceptional results. Suitable for all hair types, it provides deep nourishment while maintaining the natural balance of your hair. Perfect for daily use, this product will transform your hair care routine and leave your hair looking healthy, shiny, and beautiful.`;
 
-      if (descType === "short") {
-        handleInput("shortDescription", generated);
-      } else {
-        handleInput("description", generated);
-      }
+      handleInput("description", generated);
     } catch (error) {
       console.error("Error generating description:", error);
     } finally {
@@ -138,7 +129,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
 
   const saveProduct = async () => {
     const url = `/api/products${
-      type === "update" && product ? `/${product._id}` : ""
+      type === "update" && product ? `/${product.id}` : ""
     }`;
     const method = type === "create" ? "POST" : "PUT";
 
@@ -157,6 +148,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
     }
 
     try {
+      console.log(formData);
       const res = await fetch(url, {
         method,
         headers: {
@@ -301,30 +293,6 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
               Product Details
             </h3>
             <div className="space-y-4">
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <Label htmlFor="shortDescription">Short Description</Label>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => generateDescription("short")}
-                    disabled={isGenerating}
-                  >
-                    <Sparkles className="h-4 w-4 mr-1" />
-                    {isGenerating ? "Generating..." : "Generate"}
-                  </Button>
-                </div>
-                <Textarea
-                  id="shortDescription"
-                  value={formData.shortDescription}
-                  onChange={(e) =>
-                    handleInput("shortDescription", e.target.value)
-                  }
-                  placeholder="Brief product description..."
-                  rows={2}
-                />
-              </div>
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <Label htmlFor="description">Full Description</Label>

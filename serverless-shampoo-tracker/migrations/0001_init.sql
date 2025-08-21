@@ -15,7 +15,6 @@ CREATE TABLE IF NOT EXISTS products (
   barcode TEXT UNIQUE,
   code TEXT NOT NULL,
   name TEXT NOT NULL,
-  short_description TEXT,
   description TEXT,
   brand TEXT,
   category TEXT,
@@ -24,7 +23,6 @@ CREATE TABLE IF NOT EXISTS products (
   image_url TEXT,
   tags TEXT, -- JSON encoded array
   attributes TEXT, -- JSON encoded key-value map
-  ai_description TEXT,
   stock_qty INTEGER DEFAULT 0,
   is_active BOOLEAN DEFAULT 1,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
