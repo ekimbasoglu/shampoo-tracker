@@ -17,13 +17,14 @@ export const createProduct = async (
     tags,
     attributes,
     stock_qty,
+    is_active,
   } = data;
 
   const result = await DB.prepare(
     `INSERT INTO products (
-      barcode, code, name, short_description, description, brand, category,
-      price, volume, image_url, tags, attributes, ai_description, stock_qty, is_active
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      barcode, code, name, description, brand, category,
+      price, volume, image_url, tags, attributes, stock_qty, is_active
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   )
     .bind(
       barcode ?? null,
@@ -37,7 +38,8 @@ export const createProduct = async (
       image_url ?? null,
       tags ? JSON.stringify(tags) : null,
       attributes ? JSON.stringify(attributes) : null,
-      stock_qty ?? 0
+      stock_qty ?? 0,
+      is_active !== false ? 1 : 0
     )
     .run();
   const lastRowId = result.meta?.last_row_id;
@@ -81,13 +83,16 @@ export const getAllProducts = async (DB: D1Database): Promise<Product[]> => {
 
 export const getProductById = async (
   DB: D1Database,
-  id: string
+  idParam: string
 ): Promise<Product | null> => {
-  const result = await DB.prepare(`SELECT * FROM products WHERE id = ?`)
-    .bind(id)
-    .first<Product>();
+  const id = Number(idParam);
+  if (!Number.isInteger(id) || id < 1) return null; // or 400 at the handler
 
-  return result ?? null;
+  return (
+    (await DB.prepare("SELECT * FROM products WHERE id = ?")
+      .bind(id)
+      .first<Product>()) ?? null
+  );
 };
 
 export const updateProductById = async (
@@ -102,8 +107,8 @@ export const updateProductById = async (
 
   await DB.prepare(
     `UPDATE products SET
-      barcode = ?, code = ?, name = ?, short_description = ?, description = ?, brand = ?, category = ?,
-      price = ?, volume = ?, image_url = ?, tags = ?, attributes = ?, ai_description = ?, stock_qty = ?, is_active = ?
+      barcode = ?, code = ?, name = ?, description = ?, brand = ?, category = ?,
+      price = ?, volume = ?, image_url = ?, tags = ?, attributes = ?, stock_qty = ?, is_active = ?
      WHERE id = ?`
   )
     .bind(
